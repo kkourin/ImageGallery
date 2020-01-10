@@ -32,7 +32,7 @@ namespace ImageGallery.Database
 
             modelBuilder.Entity<Watcher>()
                 .Property(b => b.Whitelist)
-                .HasDefaultValue("");
+                .HasDefaultValue(new HashSet<string>());
 
             modelBuilder.Entity<Watcher>()
                 .Property(b => b.Enabled)
@@ -87,10 +87,19 @@ namespace ImageGallery.Database
                 .HasIndex(b => b.FileCreatedTime);
 
             modelBuilder.Entity<File>()
+               .HasIndex(b => b.FileModifiedTime);
+
+            modelBuilder.Entity<File>()
                 .HasIndex(b => b.LastUseTime);
 
             modelBuilder.Entity<File>()
                 .HasIndex(b => b.TimesAccessed);
+
+            modelBuilder.Entity<Watcher>()
+                .Property(b => b.Whitelist)
+                .HasConversion(
+                    h => Watcher.HashToExtensionString(h),
+                    s => Watcher.ExtensionStringToHash(s));
         }
         /*
         public IQueryable<FTSRow> Search(string Query)
@@ -133,7 +142,6 @@ namespace ImageGallery.Database
                 return;
             }
             Files.RemoveRange(FilesWithName(name, watcher));
-            Console.WriteLine($"Deleted {files.Count()} files in database.");
             SaveChanges();
         }
 
@@ -210,6 +218,7 @@ namespace ImageGallery.Database
                 Directory = fileInfo.DirectoryName,
                 Name = fileInfo.Name,
                 FileCreatedTime = fileInfo.CreationTimeUtc,
+                FileModifiedTime = fileInfo.LastWriteTimeUtc,
                 Extension = fileInfo.Extension,
                 Directory_fts = DBHelpers.TokenizeDirectory(fileInfo, watcher),
                 Name_fts = fileInfo.Name,
@@ -252,37 +261,57 @@ namespace ImageGallery.Database
         private void UpdateFileContents(File file, FileInfo fileInfo, Watcher watcher)
         {
             file.CreatedTime = fileInfo.CreationTimeUtc;
+            file.FileModifiedTime = fileInfo.LastWriteTimeUtc;
             file.Thumbnail = DBHelpers.GetThumbnail(fileInfo); // TODO: get new thumbnail
             SaveChanges();
         }
-
+        
+        private IQueryable<File> GetAllFilesInWatcher(Watcher watcher)
+        {
+            return from file in Files
+                   where file.WatcherId == watcher.Id
+                   select file;
+        }
         public void Sync(Watcher watcher)
         {
-            var filesInDir = DBHelpers.GetAllFilenames(watcher.Directory);
-
-            var toRemove = from file in Files
-                           where file.WatcherId == watcher.Id && !filesInDir.Contains(file.FullName)
+            var filesInDir = DBHelpers.GetAllFileInfo(watcher);
+            // Remove files no longer in folder.
+            var toRemove = from file in GetAllFilesInWatcher(watcher).ToList()
+                           where !filesInDir.ContainsKey(file.FullName)
                            select file;
-            var allNames = from file in Files
-                           select file.FullName;
             Files.RemoveRange(toRemove);
-            filesInDir.ExceptWith(allNames);
+
+            // Update updated files.
+            var toUpdate = from file in GetAllFilesInWatcher(watcher).ToList()
+                           where filesInDir.ContainsKey(file.FullName) && filesInDir[file.FullName].Equals(file.FileModifiedTime)
+                           select file;
+            foreach (var file in toUpdate)
+            {
+                file.FileModifiedTime = filesInDir[file.FullName];
+            }
+
+            // Add files that are new.
+            foreach (var file in GetAllFilesInWatcher(watcher))
+            {
+                filesInDir.Remove(file.FullName);
+            }
             Console.WriteLine($"Adding {filesInDir.Count()} files during sync.");
-            var toAdd = from filename in filesInDir
+            var toAdd = from filename in filesInDir.Keys
                         select MakeFileModel(new FileInfo(filename), watcher);
             Files.AddRange(toAdd);
             SaveChanges();
         }
 
-        public void AddWatcherForm(string name, string dir, string whitelist)
+        public Watcher AddWatcherForm(string name, string dir, string whitelist)
         {
-            Watchers.Add(new Watcher
-            {
+            var watcher = new Watcher{
                 Name = name,
                 Directory = dir,
-                Whitelist = whitelist
-            });
+                Whitelist = Watcher.ExtensionStringToHash(whitelist)
+            };
+            Watchers.Add(watcher);
             SaveChanges();
+            return watcher;
         }
     }
 

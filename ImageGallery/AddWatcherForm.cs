@@ -11,8 +11,10 @@ using System.Windows.Forms;
 namespace ImageGallery
 {
     using Database;
+    using Database.Models;
     public partial class AddWatcherForm : Form
     {
+        public Watcher AddedWatcher { get; set; }
         public AddWatcherForm()
         {
             InitializeComponent();
@@ -49,10 +51,12 @@ namespace ImageGallery
             var name = NameTextBox.Text;
             var directory = DirectoryTextBox.Text;
             var whitelist = ExtensionTextBox.Text;
+            Watcher watcher;
             using (var ctx = new FilesContext())
             {
-                ctx.AddWatcherForm(name, directory, whitelist);
+                watcher = ctx.AddWatcherForm(name, directory, whitelist);
             }
+            AddedWatcher = watcher;
             this.Close();
         }
 
@@ -67,6 +71,40 @@ namespace ImageGallery
                 return false;
             }
             return true; ;
+        }
+
+        private string GetTextToAppend(string[] extensions)
+        {
+            var strings = from ext in extensions select '.' + ext;
+            string textToAppend = String.Join(", ", strings);
+            if (ExtensionTextBox.TextLength != 0)
+            {
+                textToAppend = ", " + textToAppend;
+            }
+            return textToAppend;
+        }
+        private void ImagesButton_Click(object sender, EventArgs e)
+        {
+            ExtensionTextBox.AppendText(GetTextToAppend(Helpers.ImageFileExtensions));
+        }
+
+        private void VideoButton_Click(object sender, EventArgs e)
+        {
+            ExtensionTextBox.AppendText(GetTextToAppend(Helpers.VideoFileExtensions));
+
+        }
+
+        private void FileSelectButton_Click(object sender, EventArgs e)
+        {
+            using (var fbd = new FolderBrowserDialog())
+            {
+                DialogResult result = fbd.ShowDialog();
+
+                if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                {
+                    DirectoryTextBox.Text = fbd.SelectedPath;
+                }
+            }
         }
     }
 }

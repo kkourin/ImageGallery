@@ -20,6 +20,7 @@ namespace ImageGallery
                 ctx.Database.Migrate();
             }
         }
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -27,9 +28,10 @@ namespace ImageGallery
         static void Main()
         {
             InitDatabase();
+            var monitor = WatcherMonitor.InitMonitorFromDB();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            Application.Run(new MainForm(monitor));
         }
     }
 }

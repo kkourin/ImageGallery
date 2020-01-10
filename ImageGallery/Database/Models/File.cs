@@ -23,6 +23,8 @@ namespace ImageGallery.Database.Models
         public string Extension { get; set; }
         public DateTime CreatedTime { get; set; }
         public DateTime? FileCreatedTime { get; set; }
+
+        public DateTime? FileModifiedTime { get; set; }
         public DateTime? LastUseTime { get; set; }
         public byte[] Thumbnail { get; set; }
         [Required]

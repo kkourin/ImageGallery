@@ -7,6 +7,7 @@ namespace ImageGallery.Database
 {
     using Models;
     using System.Collections.Concurrent;
+    using System.Collections.Generic;
     using System.Threading;
     class WaitResult
     {
@@ -164,7 +165,7 @@ namespace ImageGallery.Database
         private void HandleRenamed(FileEvent fileEvent, FilesContext ctx)
         {
             Console.WriteLine($"File: {fileEvent.OldFullPath} renamed to {fileEvent.FullPath}");
-            if (!Directory.Exists(fileEvent.FullPath))
+            if (!Directory.Exists(fileEvent.FullPath) && watcher.WhitelistedFile(fileEvent.FullPath))
             {
                 ctx.RenameFile(fileEvent.OldFullPath, fileEvent.FullPath, watcher);
             }
@@ -173,13 +174,12 @@ namespace ImageGallery.Database
                 var files = ctx.FilesInDirectory(fileEvent.OldFullPath, watcher);
                 // TODO: this
                 ctx.RenameFilesInDirectory(fileEvent.OldFullPath, fileEvent.FullPath, files, watcher);
-                Console.WriteLine($"{files.Count()} files in renamed directory.");
             }
         }
         private void HandleCreated(FileEvent fileEvent, FilesContext ctx)
         {
             Console.WriteLine($"File: {fileEvent.FullPath} created event receieved.");
-            if (!Directory.Exists(fileEvent.FullPath))
+            if (!Directory.Exists(fileEvent.FullPath) && watcher.WhitelistedFile(fileEvent.FullPath))
             {
                 ctx.AddFile(fileEvent.FullPath, watcher);
             }
@@ -188,7 +188,7 @@ namespace ImageGallery.Database
         private void HandleChanged(FileEvent fileEvent, FilesContext ctx)
         {
             Console.WriteLine($"File: {fileEvent.FullPath} changed.");
-            if (!Directory.Exists(fileEvent.FullPath))
+            if (!Directory.Exists(fileEvent.FullPath) && watcher.WhitelistedFile(fileEvent.FullPath))
             {
                 ctx.UpdateFile(fileEvent.FullPath, watcher);
             }
@@ -243,6 +243,10 @@ namespace ImageGallery.Database
             queue = new FileEventQueue(Watcher, syncMutex, syncTimer, stoppedEwh, waitResult, this);
         }
 
+        private static string GetFilter(HashSet<string> whitelist)
+        {
+            return String.Join("|", (from ext in whitelist select '*' + ext));
+        }
         public void Start()
         {
             FsWatcher.Path = Watcher.Directory;

@@ -16,18 +16,17 @@ using Manina.Windows.Forms.ImageListViewRenderers;
 
 namespace ImageGallery
 {
-    public partial class Form1 : Form
+    public partial class MainForm : Form
     {
         static FileModelAdapter adapter;
-        static CancellationTokenSource ts;
 
         PopoutPreview popoutPreview;
         Image previewImage;
+        Database.WatcherMonitor _monitor;
 
-        static Form1()
+        static MainForm()
         {
             adapter = new FileModelAdapter();
-            ts = new CancellationTokenSource();
         }
         private List<FileModel> GetFileModels(List<string> files)
         {
@@ -45,11 +44,13 @@ namespace ImageGallery
             GC.Collect();
             return result.ToList<FileModel>();
         }
-        public Form1()
+        public MainForm(Database.WatcherMonitor monitor)
         {
             InitializeComponent();
+            _monitor = monitor;
             //List<string> files = Directory.GetFiles("E:\\danbooru2018\\original\\0005").ToList();
-            List<string> files = Directory.GetFiles("E:\\danbooru2018\\original\\0099").ToList();
+            //List<string> files = Directory.GetFiles("E:\\danbooru2018\\original\\0099").ToList();
+            List<string> files = new List<string>();
 
             ilvThumbs.SetRenderer(new XPRenderer());
             var models = GetFileModels(files);
@@ -203,11 +204,16 @@ namespace ImageGallery
 
         private void watchersButton_Click_1(object sender, EventArgs e)
         {
-            var watcherListForm = new WatcherListForm();
+            var watcherListForm = new WatcherListForm(_monitor);
             watcherListForm.ShowDialog();
         }
 
         private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void searchTextBox_Click(object sender, EventArgs e)
         {
 
         }

@@ -198,11 +198,19 @@
     <Compile Include="Database\WatcherMonitor.cs" />
     <Compile Include="FileModel.cs" />
     <Compile Include="FileModelAdapter.cs" />
-    <Compile Include="Form1.cs">
+    <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form1.Designer.cs">
-      <DependentUpon>Form1.cs</DependentUpon>
+    <Compile Include="MainForm.Designer.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\20200110021332_CreateModifiedTimeColumn.cs" />
+    <Compile Include="Migrations\20200110021332_CreateModifiedTimeColumn.designer.cs">
+      <DependentUpon>20200110021332_CreateModifiedTimeColumn.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\20200110214252_UseHashForWhitelist.cs" />
+    <Compile Include="Migrations\20200110214252_UseHashForWhitelist.designer.cs">
+      <DependentUpon>20200110214252_UseHashForWhitelist.cs</DependentUpon>
     </Compile>
     <Compile Include="PopoutImageView.cs">
       <SubType>Form</SubType>
@@ -235,8 +243,8 @@
     <EmbeddedResource Include="AddWatcherForm.resx">
       <DependentUpon>AddWatcherForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Form1.resx">
-      <DependentUpon>Form1.cs</DependentUpon>
+    <EmbeddedResource Include="MainForm.resx">
+      <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="PopoutImageView.resx">
       <DependentUpon>PopoutImageView.cs</DependentUpon>

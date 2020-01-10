@@ -8,7 +8,7 @@ using System.Threading;
 namespace ImageGallery.Database
 {
     using Models;
-    class WatcherMonitor
+    public class WatcherMonitor
     {
         class FSWatcherTaskPack
         {
@@ -16,6 +16,7 @@ namespace ImageGallery.Database
             public FSWatcher FSWatcher { get; set; }
             public Task Task { get; set; }
             public int Failures { get; set; }
+                        public string LastError { get; set; } = "";
         }
         Dictionary<int, FSWatcherTaskPack> watchers;
         private int WaitInterval = 10000;
@@ -24,15 +25,27 @@ namespace ImageGallery.Database
             watchers = new Dictionary<int, FSWatcherTaskPack>();
         }
 
+        public static WatcherMonitor InitMonitorFromDB()
+        {
+            var monitor = new WatcherMonitor();
+            using (var ctx = new FilesContext())
+            {
+                foreach (var watcher in ctx.Watchers.ToList()) {
+                    monitor.AddWatcher(watcher);
+                }
+            }
+            return monitor;
+        }
+
         private void HandleFailedWatch(Task t, object o)
         {
             FSWatcherTaskPack pack = (FSWatcherTaskPack)o;
             pack.Failures += 1;
+            pack.LastError = t.Exception.ToString();
             Console.WriteLine($"Failed. Watcher has had {pack.Failures} failure(s). Got exception: {t.Exception}");
             Console.WriteLine("Restarting.");
             Thread.Sleep(WaitInterval);
             Console.WriteLine("Wait finished. Restarting watcher.");
-
             FSWatcher fsWatcher = new FSWatcher(pack.Watcher);
             pack.FSWatcher = fsWatcher;
 
@@ -42,7 +55,10 @@ namespace ImageGallery.Database
         }
         public void AddWatcher(Watcher watcher)
         {
-
+            if (watcher == null)
+            {
+                return;
+            }
             FSWatcher fsWatcher;
             try {
                 fsWatcher = new FSWatcher(watcher);
@@ -97,6 +113,15 @@ namespace ImageGallery.Database
             pack.FSWatcher.Stop();
             pack.Task.Wait();
             watchers.Remove(watcher.Id);
+        }
+
+        public string GetLastError(int id)
+        {
+            if (!watchers.ContainsKey(id))
+            {
+                throw new KeyNotFoundException($"Could not find watcher with id {id}.");
+            }
+            return watchers[id].LastError;
         }
     }
 }

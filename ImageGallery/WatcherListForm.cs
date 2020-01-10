@@ -14,9 +14,11 @@ namespace ImageGallery
     using Database.Models;
     public partial class WatcherListForm : Form
     {
-        public WatcherListForm()
+        WatcherMonitor _monitor;
+        public WatcherListForm(WatcherMonitor monitor)
         {
             InitializeComponent();
+            _monitor = monitor;
             RefreshListView();
         }
         private void RefreshListView()
@@ -25,11 +27,69 @@ namespace ImageGallery
             List<ListViewItem> watcherList = new List<ListViewItem>();
             using (var ctx = new FilesContext())
             {
-                watcherList
-                    .AddRange(from watcher in ctx.Watchers
-                              select new ListViewItem(new[] { watcher.Name, watcher.Enabled.ToString(), watcher.Directory, watcher.Whitelist }));
+                foreach (var watcher in ctx.Watchers)
+                {
+                    var item = new ListViewItem(new[] { watcher.Name, watcher.Enabled.ToString(), watcher.Directory, Watcher.HashToExtensionString(watcher.Whitelist) });
+                    item.Tag = watcher.Id;
+                    watcherList.Add(item);
+                }
             }
             watcherListView.Items.AddRange(watcherList.ToArray());
+
+        }
+
+        private void AddButton_Click(object sender, EventArgs e)
+        {
+            var addWatcherForm = new AddWatcherForm();
+            addWatcherForm.ShowDialog();
+            Watcher AddedWatcher = addWatcherForm.AddedWatcher;
+            if (AddedWatcher != null)
+            {
+                _monitor.AddWatcher(AddedWatcher);
+            }
+            RefreshListView();
+        }
+
+        private void WatcherListForm_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void RemoveButton_Click(object sender, EventArgs e)
+        {
+            if (watcherListView.SelectedItems.Count == 0)
+            {
+                return;
+            }
+            var item = watcherListView.SelectedItems[0];
+            var id = (int)item.Tag;
+            using (var ctx = new FilesContext())
+            {
+                Watcher found = ctx.Watchers.SingleOrDefault(watcher => watcher.Id == id);
+                if (found == null)
+                {
+                    Console.Write($"Could not find watcher with id {id}.");
+                    return;
+                }
+                var confirmResult = MessageBox.Show(
+                    $"Are you sure you want to delete this watcher? This will delete all custom tags and command for files in:\n{found.Directory}",
+                    "Confirmation",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning
+                );
+                if (confirmResult != DialogResult.Yes)
+                {
+                    return;
+                }
+                ctx.Watchers.Remove(found);
+                ctx.SaveChanges();
+                _monitor.Stop(found);
+            }
+            RefreshListView();
+        }
+
+        private void watcherListView_ColumnWidthChanging(object sender, ColumnWidthChangingEventArgs e)
+        {
 
         }
 
@@ -38,16 +98,30 @@ namespace ImageGallery
 
         }
 
-        private void AddButton_Click(object sender, EventArgs e)
+        private void LastErrorButton_Click(object sender, EventArgs e)
         {
-            var addWatcherForm = new AddWatcherForm();
-            addWatcherForm.ShowDialog();
-            RefreshListView();
-        }
-
-        private void WatcherListForm_Load(object sender, EventArgs e)
-        {
-
+            if (watcherListView.SelectedItems.Count == 0)
+            {
+                return;
+            }
+            var item = watcherListView.SelectedItems[0];
+            var id = (int)item.Tag;
+            string dialogueText;
+            try {
+                var lastError = _monitor.GetLastError(id);
+                if (lastError == "")
+                {
+                    dialogueText = "No errors have occurred for this watcher.";
+                } else
+                {
+                    dialogueText = $"Last exception details:\n{lastError}";
+                }
+                
+            } catch (KeyNotFoundException)
+            {
+                dialogueText = "Error: Watcher not found.";
+            }
+            MessageBox.Show(dialogueText, "Last Error");
         }
     }
 }

@@ -70,29 +70,22 @@ namespace ImageGallery.Database
             return null;
         }
 
-        public static HashSet<string> GetAllFilenames(string dir)
+        // If extensions is empty, returns ALL.
+        public static Dictionary<string, DateTime> GetAllFileInfo(Watcher watcher)
         {
+            var dir = watcher.Directory;
             if (!Directory.Exists(dir))
             {
                 return null;
             }
-            HashSet<string> acc = new HashSet<string>();
-            GetAllFilenamesAcc(dir, acc);
-            return acc;
+            var files = from filename in Directory.EnumerateFiles(dir, "*", SearchOption.AllDirectories)
+                        where watcher.WhitelistedFile(filename)
+                        select new KeyValuePair<string, DateTime>(filename, System.IO.File.GetLastWriteTime(filename));
+            return files.ToDictionary(kv => kv.Key, kv => kv.Value);
         }
 
-        private static void GetAllFilenamesAcc(string dir, HashSet<string> acc)
-        {
-            foreach (string subDir in Directory.GetDirectories(dir))
-            {
-                GetAllFilenamesAcc(subDir, acc);
-            }
-            foreach (string filename in Directory.GetFiles(dir))
-            {
-                acc.Add(filename);
-            }
 
-        }
+
 
         // Extension
         public static void Reset(this Timer timer)

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.IO;
 
 
 namespace ImageGallery.Database.Models
@@ -18,10 +19,31 @@ namespace ImageGallery.Database.Models
         [Required]
         public string Directory { get; set; }
         [Required]
-        public string Whitelist { get; set; }
+        public HashSet<string> Whitelist { get; set; }
         [Required]
         public bool Enabled { get; set; }
 
         public List<File> Files { get; set; }
+
+
+        public static HashSet<string> ExtensionStringToHash(string whitelist)
+        {
+            return whitelist.Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries).ToHashSet<string>();
+        }
+
+        public static string HashToExtensionString(HashSet<string> extensions)
+        {
+            return String.Join(", ", extensions);
+        }
+
+        public bool WhitelistedFile(string filename)
+        {
+            var extension = Path.GetExtension(filename);
+            if (Whitelist.Count == 0)
+            {
+                return true;
+            }
+            return Whitelist.Contains(extension);
+        }
     }
 }
