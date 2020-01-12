@@ -39,11 +39,16 @@ namespace ImageGallery.Database.Models
         public bool WhitelistedFile(string filename)
         {
             var extension = Path.GetExtension(filename);
-            if (Whitelist.Count == 0)
+            if (!Whitelist.Any())
             {
                 return true;
             }
             return Whitelist.Contains(extension);
+        }
+
+        public override string ToString()
+        {
+            return Name;
         }
     }
 }

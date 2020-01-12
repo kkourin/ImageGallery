@@ -35,11 +35,14 @@
             // 
             this.poppedPreviewBox.Dock = System.Windows.Forms.DockStyle.Fill;
             this.poppedPreviewBox.DropShadowSize = 0;
-            this.poppedPreviewBox.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBilinear;
+            this.poppedPreviewBox.GridColor = System.Drawing.Color.WhiteSmoke;
+            this.poppedPreviewBox.GridColorAlternate = System.Drawing.Color.WhiteSmoke;
+            this.poppedPreviewBox.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Bicubic;
             this.poppedPreviewBox.Location = new System.Drawing.Point(0, 0);
             this.poppedPreviewBox.Name = "poppedPreviewBox";
             this.poppedPreviewBox.Size = new System.Drawing.Size(800, 450);
             this.poppedPreviewBox.TabIndex = 0;
+            this.poppedPreviewBox.Resize += new System.EventHandler(this.poppedPreviewBox_Resize);
             // 
             // PopoutPreview
             // 
@@ -52,6 +55,7 @@
             this.Text = "Preview";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.PopoutPreview_FormClosing);
             this.Load += new System.EventHandler(this.PopoutPreview_Load);
+            this.Resize += new System.EventHandler(this.PopoutPreview_Resize);
             this.ResumeLayout(false);
 
         }

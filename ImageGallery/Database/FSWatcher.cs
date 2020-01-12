@@ -8,6 +8,7 @@ namespace ImageGallery.Database
     using Models;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Runtime.Caching;
     using System.Threading;
     class WaitResult
     {
@@ -76,6 +77,11 @@ namespace ImageGallery.Database
         readonly System.Timers.Timer SyncTimer;
         readonly WaitResult waitResult;
         readonly FSWatcher fsWatcher;
+
+        private readonly MemoryCache _changedCache;
+        private const int CacheTimeMilliseconds = 2500;
+
+
         public FileEventQueue(
             Watcher watcher,
             Mutex mutex,
@@ -84,6 +90,7 @@ namespace ImageGallery.Database
             WaitResult waitResult,
             FSWatcher fsWatcher)
         {
+            _changedCache = MemoryCache.Default;
             this.fsWatcher = fsWatcher;
             this.waitResult = waitResult;
             this.SyncTimer = timer;
@@ -91,6 +98,25 @@ namespace ImageGallery.Database
             this.watcher = watcher;
             loopTask = Task.Run(() => Loop(cts.Token));
         }
+        
+        private CacheItemPolicy ChangeCachePolicy()
+        {
+            return new CacheItemPolicy
+            {
+                RemovedCallback = TriggerChange,
+                AbsoluteExpiration = DateTimeOffset.UtcNow.AddMilliseconds(CacheTimeMilliseconds)
+            };
+        }
+        private void TriggerChange(CacheEntryRemovedArguments args)
+        {
+            var fileEvent = (FileEvent)args.CacheItem.Value;
+            using (var ctx = new FilesContext())
+            {
+                Console.WriteLine("Triggered cached file.");
+                ctx.UpdateFile(fileEvent.FullPath, watcher);
+            }
+        }
+
         public void Add(ErrorEventArgs e)
         {
             throw e.GetException();
@@ -145,6 +171,7 @@ namespace ImageGallery.Database
                 if (fileEvent.Type == EventType.Deleted)
                 {
                     Console.WriteLine($"Performing delete on {fileEvent.FullPath}");
+                    _changedCache.Remove(fileEvent.FullPath,  CacheEntryRemovedReason.Removed);
                     ctx.DeleteFile(fileEvent.FullPath, watcher);
                 }
                 else if (fileEvent.Type == EventType.Renamed)
@@ -167,13 +194,14 @@ namespace ImageGallery.Database
             Console.WriteLine($"File: {fileEvent.OldFullPath} renamed to {fileEvent.FullPath}");
             if (!Directory.Exists(fileEvent.FullPath) && watcher.WhitelistedFile(fileEvent.FullPath))
             {
+                _changedCache.Remove(fileEvent.FullPath, CacheEntryRemovedReason.Removed);
                 ctx.RenameFile(fileEvent.OldFullPath, fileEvent.FullPath, watcher);
             }
             else if (Directory.Exists(fileEvent.FullPath))
             {
-                var files = ctx.FilesInDirectory(fileEvent.OldFullPath, watcher);
+                //var files = ctx.FilesInDirectory(fileEvent.OldFullPath, watcher);
                 // TODO: this
-                ctx.RenameFilesInDirectory(fileEvent.OldFullPath, fileEvent.FullPath, files, watcher);
+                ctx.RenameFilesInDirectory(fileEvent.OldFullPath, fileEvent.FullPath, watcher);
             }
         }
         private void HandleCreated(FileEvent fileEvent, FilesContext ctx)
@@ -183,6 +211,10 @@ namespace ImageGallery.Database
             {
                 ctx.AddFile(fileEvent.FullPath, watcher);
             }
+            else if (Directory.Exists(fileEvent.FullPath))
+            {
+                ctx.SyncCreatedDirectory(watcher, fileEvent.FullPath);
+            }
         }
 
         private void HandleChanged(FileEvent fileEvent, FilesContext ctx)
@@ -190,8 +222,9 @@ namespace ImageGallery.Database
             Console.WriteLine($"File: {fileEvent.FullPath} changed.");
             if (!Directory.Exists(fileEvent.FullPath) && watcher.WhitelistedFile(fileEvent.FullPath))
             {
+                _changedCache.AddOrGetExisting(fileEvent.FullPath, fileEvent, ChangeCachePolicy());
                 ctx.UpdateFile(fileEvent.FullPath, watcher);
-            }
+            } 
         }
 
 
@@ -213,8 +246,8 @@ namespace ImageGallery.Database
     }
     class FSWatcher
     {
-        private const int InitIntervalMillis = 1000;
-        private const int SyncIntervalMillis = 10000;
+        private const int InitIntervalMillis = 2000;
+        private const int SyncIntervalMillis = 120000;
         FileSystemWatcher FsWatcher;
         Watcher Watcher { get; }
         FileEventQueue queue;
@@ -292,7 +325,7 @@ namespace ImageGallery.Database
 
         private void HandleSyncTimer(object source, ElapsedEventArgs e)
         {
-            Console.WriteLine("The Sync event was raised at {0:HH:mm:ss.fff}", e.SignalTime);
+            //Console.WriteLine("The Sync event was raised at {0:HH:mm:ss.fff}", e.SignalTime);
             Sync();
             if (firstSync)
             {

@@ -14,11 +14,11 @@ namespace ImageGallery
     using Database.Models;
     public partial class WatcherListForm : Form
     {
-        WatcherMonitor _monitor;
+        WatcherMonitor Monitor { get; set; }
         public WatcherListForm(WatcherMonitor monitor)
         {
             InitializeComponent();
-            _monitor = monitor;
+            Monitor = monitor;
             RefreshListView();
         }
         private void RefreshListView()
@@ -45,7 +45,7 @@ namespace ImageGallery
             Watcher AddedWatcher = addWatcherForm.AddedWatcher;
             if (AddedWatcher != null)
             {
-                _monitor.AddWatcher(AddedWatcher);
+                Monitor.AddWatcher(AddedWatcher);
             }
             RefreshListView();
         }
@@ -83,7 +83,7 @@ namespace ImageGallery
                 }
                 ctx.Watchers.Remove(found);
                 ctx.SaveChanges();
-                _monitor.Stop(found);
+                Monitor.Stop(found);
             }
             RefreshListView();
         }
@@ -108,7 +108,7 @@ namespace ImageGallery
             var id = (int)item.Tag;
             string dialogueText;
             try {
-                var lastError = _monitor.GetLastError(id);
+                var lastError = Monitor.GetLastError(id);
                 if (lastError == "")
                 {
                     dialogueText = "No errors have occurred for this watcher.";

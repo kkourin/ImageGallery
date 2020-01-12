@@ -28,6 +28,7 @@ namespace ImageGallery
         static void Main()
         {
             InitDatabase();
+            //Properties.Settings.Default
             var monitor = WatcherMonitor.InitMonitorFromDB();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);

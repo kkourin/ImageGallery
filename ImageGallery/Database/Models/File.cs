@@ -49,6 +49,11 @@ namespace ImageGallery.Database.Models
         public int WatcherId { get; set; }
         public Watcher Watcher { get; set; }
 
+        public void RecordUse()
+        {
+            LastUseTime = DateTime.UtcNow;
+            TimesAccessed += 1;
+        }
 
     }
 }

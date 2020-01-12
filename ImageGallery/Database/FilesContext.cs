@@ -101,16 +101,37 @@ namespace ImageGallery.Database
                     h => Watcher.HashToExtensionString(h),
                     s => Watcher.ExtensionStringToHash(s));
         }
-        /*
-        public IQueryable<FTSRow> Search(string Query)
+        
+        public IQueryable<File> Search(string Query, HashSet<int> watchers)
         {
-            return FTSRow.FromSql(
-                "SELECT FileId, Text"
-                + "FROM \"Text\" WHERE \"Text\" MATCH {0}"
-                , Query
-            );
+            return from file in
+                       Files.FromSqlRaw(
+                        "SELECT *" +
+                        "FROM \"Files\" WHERE \"Id\" IN (" +
+                            "SELECT RowID from FileFTS WHERE FileFTS MATCH {0}" +
+                        ")"
+                        , Query).AsNoTracking()
+                   where watchers.Contains(file.WatcherId)
+                   orderby file.FileModifiedTime
+                   select file;
         }
-        */
+        public static string MakeQuery(string textInput)
+        {
+            var terms = from term in textInput.Split()
+                        select String.Format("\"{0}\" *", term);
+            return String.Join(" AND ", terms);
+        }
+
+
+        public void RecordUse(File file)
+        {
+            var found = Files.Find(file.Id);
+            if (found != null)
+            {
+                found.RecordUse();
+            }
+            SaveChanges();
+        }
         public IEnumerable<File> FilesInDirectory(string directory, Watcher watcher)
         {
             var files = Files.FromSqlRaw(
@@ -165,6 +186,7 @@ namespace ImageGallery.Database
                 file.Name = fileInfo.Name;
                 file.Name_fts = fileInfo.Name;
                 file.Name_tokenized_fts = DBHelpers.TokenizeName(fileInfo);
+                file.Thumbnail = DBHelpers.GetThumbnail(fileInfo);
                 SaveChanges();
             }
             else
@@ -174,8 +196,9 @@ namespace ImageGallery.Database
             }
         }
 
-        public void RenameFilesInDirectory(string oldPath, string newPath, IEnumerable<File> filesInOldPath, Watcher watcher)
+        public void RenameFilesInDirectory(string oldPath, string newPath, Watcher watcher)
         {
+            var filesInOldPath = FilesInDirectory(oldPath, watcher);
             foreach (File file in filesInOldPath)
             {
                 var newFullName = newPath + Path.DirectorySeparatorChar + DBHelpers.GetRelativePathFromFile(file.FullName, oldPath);
@@ -191,14 +214,7 @@ namespace ImageGallery.Database
         public void AddFile(string filename, Watcher watcher)
         {
             var fileInfo = new FileInfo(filename);
-            var dirInfo = fileInfo.Directory;
-
-            if (!DBHelpers.IsInDir(dirInfo, watcher.Directory))
-            {
-                Console.WriteLine($"File {filename} not in watcher {watcher.Name} | {watcher.Directory}");
-                return;
-            }
-            var files = FilesWithName(filename, watcher);
+            var files = FilesWithName(filename, watcher).ToList();
             if (files.Any())
             {
                 UpdateFileContents(files.First(), fileInfo, watcher);
@@ -227,14 +243,7 @@ namespace ImageGallery.Database
                 WatcherId = watcher.Id
             };
             // Fix these when they actually get exceptions.
-            try
-            {
-                newFile.Thumbnail = DBHelpers.GetThumbnail(fileInfo);
-            }
-            catch
-            {
-
-            }
+            newFile.Thumbnail = DBHelpers.GetThumbnail(fileInfo);
             return newFile;
 
         }
@@ -242,11 +251,11 @@ namespace ImageGallery.Database
         public void UpdateFile(string filename, Watcher watcher)
         {
             var fileInfo = new FileInfo(filename);
-            var files = FilesWithName(filename, watcher);
+            var files = FilesWithName(filename, watcher).ToList();
             // TODO: Try clause?
             if (!files.Any())
             {
-                AddFile(filename, watcher);
+                return;
             }
             else if (files.Count() <= 1)
             {
@@ -275,6 +284,10 @@ namespace ImageGallery.Database
         public void Sync(Watcher watcher)
         {
             var filesInDir = DBHelpers.GetAllFileInfo(watcher);
+            if (filesInDir == null)
+            {
+                return;
+            }
             // Remove files no longer in folder.
             var toRemove = from file in GetAllFilesInWatcher(watcher).ToList()
                            where !filesInDir.ContainsKey(file.FullName)
@@ -302,6 +315,20 @@ namespace ImageGallery.Database
             SaveChanges();
         }
 
+        public void SyncCreatedDirectory(Watcher watcher, string dir)
+        {
+            var filesInDir = DBHelpers.GetAllFileInfoInDirectory(watcher, dir);
+            if (filesInDir == null)
+            {
+                return;
+            }
+            foreach (var filename in filesInDir.Keys)
+            {
+                Files.Add(MakeFileModel(new FileInfo(filename), watcher));
+            }
+            SaveChanges();
+        }
+
         public Watcher AddWatcherForm(string name, string dir, string whitelist)
         {
             var watcher = new Watcher{
@@ -313,6 +340,7 @@ namespace ImageGallery.Database
             SaveChanges();
             return watcher;
         }
+
     }
 
 }

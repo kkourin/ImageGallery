@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Cyotek.Windows.Forms;
 
 namespace ImageGallery
 {
@@ -24,9 +25,27 @@ namespace ImageGallery
                 poppedPreviewBox.BeginUpdate();
                 previewImage = value;
                 poppedPreviewBox.Image = value;
-                poppedPreviewBox.ZoomToFit();
+                ZoomIfTooLarge();
                 poppedPreviewBox.EndUpdate();
             }
+        }
+
+        private void ZoomIfTooLarge()
+        {
+            if (previewImage == null || poppedPreviewBox.Image == null)
+            {
+                Console.WriteLine("image null");
+                return;
+            }
+            Console.WriteLine($"{previewImage.Width}, {poppedPreviewBox.Width}, {previewImage.Height}, {poppedPreviewBox.Height}");
+
+            if (previewImage.Width > poppedPreviewBox.Width || previewImage.Height > poppedPreviewBox.Height )
+            {
+                poppedPreviewBox.ZoomToFit();
+                return;
+            }
+            poppedPreviewBox.Zoom = 100;
+            Console.WriteLine("Not zooming");
         }
         public PopoutPreview()
         {
@@ -44,7 +63,18 @@ namespace ImageGallery
 
         private void PopoutPreview_Load(object sender, EventArgs e)
         {
-            poppedPreviewBox.ZoomToFit();
+            ZoomIfTooLarge();
+        }
+
+        private void poppedPreviewBox_Resize(object sender, EventArgs e)
+        {
+
+        }
+
+        private void PopoutPreview_Resize(object sender, EventArgs e)
+        {
+            Console.WriteLine(sender.GetType().ToString());
+            ZoomIfTooLarge();
         }
     }
 }

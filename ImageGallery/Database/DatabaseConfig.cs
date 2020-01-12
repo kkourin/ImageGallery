@@ -16,16 +16,17 @@ namespace ImageGallery.Database
             DatabasePath = ReadSetting("DatabasePath");
         }
 
-        static string ReadSetting(string key)
+        public static string ReadSetting(string key)
         {
             var appSettings = ConfigurationManager.AppSettings;
             string result = appSettings[key] ?? "gallery_data.db";
             return result;
         }
 
-        static void AddUpdateAppSettings(string key, string value)
+        public static void AddUpdateAppSettings(string key, string value)
         {
             var configFile = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            Console.WriteLine(configFile.FilePath);
             var settings = configFile.AppSettings.Settings;
             if (settings[key] == null)
             {

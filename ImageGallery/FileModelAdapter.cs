@@ -9,14 +9,17 @@ using System.Threading;
 
 namespace ImageGallery
 {
+    using Database;
+    using Database.Models;
     class FileModelAdapter : ImageListView.ImageListViewItemAdaptor
     {
-        private static readonly ImageConverter imageConverter;
-
+        private static readonly ImageConverter _imageConverter;
+        string ColumnGroup { get; set; }
         static FileModelAdapter()
         {
-            imageConverter = new ImageConverter();
+            _imageConverter = new ImageConverter();
         }
+
 
         private bool disposed;
         public override void Dispose()
@@ -26,9 +29,9 @@ namespace ImageGallery
 
         public override Utility.Tuple<ColumnType, string, object>[] GetDetails(object key)
         {
-            FileModel file = (FileModel)key;
+            File file = (File)key;
             List<Utility.Tuple<ColumnType, string, object>> details = new List<Utility.Tuple<ColumnType, string, object>>();
-            details.Add(new Utility.Tuple<ColumnType, string, object>(ColumnType.Custom, "meta", file.meta));
+            //details.Add(new Utility.Tuple<ColumnType, string, object>(ColumnType.Custom, "columnGroup", ColumnGroup));
             return details.ToArray();
         }
 
@@ -38,9 +41,8 @@ namespace ImageGallery
             {
                 return null;
             }
-            Thread.Sleep(1000);
-            FileModel file = (FileModel)key;
-            return file.path;
+            File file = (File)key;
+            return file.FullName;
         }
 
         public override Image GetThumbnail(object key, Size size, UseEmbeddedThumbnails useEmbeddedThumbnails, bool useExifOrientation)
@@ -49,22 +51,24 @@ namespace ImageGallery
             {
                 return null;
             }
-            FileModel file = (FileModel)key;
+            File file = (File)key;
             //return file.thumbnailImage;
-            if (!file.fileInfo.Exists)
+
+            if (file.Thumbnail == null)
             {
-                return null;
+                try
+                {
+                    Icon icon = System.Drawing.Icon.ExtractAssociatedIcon(file.FullName);
+                    return icon.ToBitmap();
+                } catch (ArgumentException)
+                {
+                    return null;
+                }
             }
             try
             {
-                if (file.thumbnail == null)
-                {
-                    Icon icon = System.Drawing.Icon.ExtractAssociatedIcon(file.fileInfo.FullName);
-                    return icon.ToBitmap();
-                }
-                return MakeImageFromJpegBlob(file.thumbnail);
-            }
-            catch (Exception)
+                return MakeImageFromJpegBlob(file.Thumbnail);
+            } catch (NotSupportedException)
             {
                 return null;
             }
@@ -72,14 +76,12 @@ namespace ImageGallery
 
         private Image MakeImageFromJpegBlob(byte[] blob)
         {
-            return (Bitmap)imageConverter.ConvertFrom(blob);
+            return (Bitmap)_imageConverter.ConvertFrom(blob);
         }
 
         public override string GetUniqueIdentifier(object key, Size size, UseEmbeddedThumbnails useEmbeddedThumbnails, bool useExifOrientation)
         {
-
-            FileModel file = (FileModel)key;
-            return file.guid.ToString();
+            return Guid.NewGuid().ToString();
         }
     }
 }

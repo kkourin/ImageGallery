@@ -8,6 +8,7 @@ using System.IO;
 namespace ImageGallery.Database
 {
     using Models;
+    using System.Drawing;
     using System.Timers;
 
     public static class DBHelpers
@@ -65,15 +66,62 @@ namespace ImageGallery.Database
         }
         public static byte[] GetThumbnail(FileInfo file)
         {
-            // If image...
-            // REmember, very high chance of exception, file may be partially downloaded...
-            return null;
+            if (!Helpers.IsImageFile(file.Name))
+            {
+                return null;
+            }
+            if (!file.Exists)
+            {
+                return null;
+            }
+            Image img;
+            try
+            {
+                img = Helpers.LoadImage(file);
+
+            }
+            catch (ArgumentException)
+            {
+                return null;
+            }
+            catch (FileNotFoundException)
+            {
+                return null;
+            } catch( Exception ) {
+                // TODO: remopve this catch all. I use it right now to not fail on open files.
+                return null;
+            }
+
+            if (img == null)
+            {
+                return null;
+            }
+
+            try
+            {
+                Image thumbnailImage = Helpers.CreateThumbnail(img, 150, 150);
+                byte[] thumbnail = Helpers.ImageToJpegByteArray(thumbnailImage);
+                return thumbnail;
+
+            }
+            catch (ArgumentException)
+            {
+                return null;
+            }
         }
+
+
 
         // If extensions is empty, returns ALL.
         public static Dictionary<string, DateTime> GetAllFileInfo(Watcher watcher)
         {
             var dir = watcher.Directory;
+            return GetAllFileInfoInDirectory(watcher, dir);
+        }
+
+        // If extensions is empty, returns ALL.
+        public static Dictionary<string, DateTime> GetAllFileInfoInDirectory(Watcher watcher, string dir)
+        {
             if (!Directory.Exists(dir))
             {
                 return null;
@@ -83,7 +131,6 @@ namespace ImageGallery.Database
                         select new KeyValuePair<string, DateTime>(filename, System.IO.File.GetLastWriteTime(filename));
             return files.ToDictionary(kv => kv.Key, kv => kv.Value);
         }
-
 
 
 

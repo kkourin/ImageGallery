@@ -19,7 +19,7 @@ namespace ImageGallery.Database
                         public string LastError { get; set; } = "";
         }
         Dictionary<int, FSWatcherTaskPack> watchers;
-        private int WaitInterval = 10000;
+        private int WaitInterval = 5000;
         public WatcherMonitor()
         {
             watchers = new Dictionary<int, FSWatcherTaskPack>();
