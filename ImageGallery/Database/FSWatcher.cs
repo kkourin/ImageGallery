@@ -21,7 +21,8 @@ namespace ImageGallery.Database
             Created,
             Deleted,
             Changed,
-            Renamed
+            Renamed,
+            Error
         }
 
         private class FileEvent
@@ -29,6 +30,7 @@ namespace ImageGallery.Database
             public EventType Type { get; set; }
             public String FullPath { get; set; }
             public String OldFullPath { get; set; }
+            public ErrorEventArgs Error { get; set; }
             public FileEvent(FileSystemEventArgs e)
             {
                 switch (e.ChangeType)
@@ -54,12 +56,17 @@ namespace ImageGallery.Database
                 OldFullPath = e.OldFullPath;
                 FullPath = e.FullPath;
             }
+
+            public FileEvent(ErrorEventArgs e)
+            {
+                Type = EventType.Error;
+                Error = e;
+            }
             public override string ToString()
             {
                 return $"FileEvent({Type}, {FullPath}, {OldFullPath})";
             }
         }
-
 
         private bool _closed = false;
         public bool Closed
@@ -69,6 +76,7 @@ namespace ImageGallery.Database
                 return _closed;
             }
         }
+
         readonly CancellationTokenSource cts = new CancellationTokenSource();
         readonly BlockingCollection<FileEvent> queue = new BlockingCollection<FileEvent>();
         readonly Task loopTask;
@@ -119,7 +127,7 @@ namespace ImageGallery.Database
 
         public void Add(ErrorEventArgs e)
         {
-            throw e.GetException();
+            queue.Add(new FileEvent(e));
         }
         public void Add(FileSystemEventArgs e)
         {
@@ -130,6 +138,7 @@ namespace ImageGallery.Database
         {
             queue.Add(new FileEvent(e));
         }
+
         private void Loop(CancellationToken token)
         {
             try
@@ -185,6 +194,9 @@ namespace ImageGallery.Database
                 else if (fileEvent.Type == EventType.Changed)
                 {
                     HandleChanged(fileEvent, ctx);
+                } else if (fileEvent.Type == EventType.Error)
+                {
+                    throw fileEvent.Error.GetException();
                 }
             }
         }

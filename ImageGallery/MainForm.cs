@@ -15,11 +15,14 @@ using Manina.Windows.Forms;
 using Manina.Windows.Forms.ImageListViewRenderers;
 using Microsoft.EntityFrameworkCore;
 using Cyotek.Windows.Forms;
+using NHotkey.WindowsForms;
 
 namespace ImageGallery
 {
     using Database;
     using Database.Models;
+    using NHotkey;
+
     public partial class MainForm : Form
     {
         static FileModelAdapter Adaptor;
@@ -32,8 +35,7 @@ namespace ImageGallery
         private const int InitDefaultSearchSize = 10;
         private int DefaultSearchSize = InitDefaultSearchSize;
         CancellationTokenSource previewCts = new CancellationTokenSource();
-        private bool ShowAllReset;
-        private bool ShowAllDefaultView;
+        CancellationTokenSource searchCts = new CancellationTokenSource();
         private ToolStripMenuItem ManageWatchersButton;
 
         static MainForm()
@@ -46,6 +48,9 @@ namespace ImageGallery
             InitializeComponent();
             WatcherDropDown.DropDown.Closing += WatcherDropDown_Closing;
 
+            // Add hotkeys
+            HotkeyManager.Current.AddOrReplace("test", Keys.Control | Keys.Shift | Keys.D3, OpenGalleryHotkey_Press);
+
             // Fill fields
             Monitor = monitor;
             ManageWatchersButton = new ToolStripMenuItem("Manage Watchers", null, ManageWatchersButton_onClick);
@@ -57,13 +62,11 @@ namespace ImageGallery
             // Initialize Watchers
             RefreshWatchers();
 
-
-
             // Load configuration
             LoadConfiguration();
 
 
-            ilvThumbs.SetRenderer(new XPRenderer());
+            ilvThumbs.SetRenderer(new TestRenderer());
             ilvThumbs.Columns.Add(ColumnType.Name);
 
             // Set up grouper.
@@ -77,8 +80,16 @@ namespace ImageGallery
             ilvThumbs.SortColumn = 1;
             ilvThumbs.SortOrder = Manina.Windows.Forms.SortOrder.Descending;
 
+            ActiveControl = searchTextBox.Control;
+
             RefreshView();
 
+        }
+
+        private void OpenGalleryHotkey_Press(object sender, HotkeyEventArgs e)
+        {
+            Restore();
+            e.Handled = true;
         }
 
         private void WatcherDropDown_Closing(object sender, ToolStripDropDownClosingEventArgs e)
@@ -173,26 +184,53 @@ namespace ImageGallery
 
         }
 
-        private void DoSearch()
+        private void SelectFirstIfExists()
         {
-            var watcherIds = GetActiveWatcherIds();
-            var searchString = FilesContext.MakeQuery(searchTextBox.Text);
-            var result = new List<File>();
-            using (var ctx = new FilesContext())
-            {
-                result.AddRange(ctx.Search(searchString, watcherIds).Take(SearchResultSize));
-            }
-            var items = from file in result
-                        select MakeListViewItem(file, "Search Result");
-            ilvThumbs.Items.AddRange(items.ToArray(), Adaptor);
             var firstItem = ilvThumbs.Items.FirstOrDefault();
             if (firstItem != null)
             {
                 firstItem.Selected = true;
             }
         }
+        private void DoSearch()
+        {
+            searchCts.Cancel();
+            searchCts = new CancellationTokenSource();
+            DisplaySearchTask(searchCts.Token);
+        }
 
-
+        private Task DisplaySearchTask(CancellationToken token)
+        {
+            return Task.Run(() =>
+            {
+                var watcherIds = GetActiveWatcherIds();
+                var searchString = FilesContext.MakeQuery(searchTextBox.Text);
+                var result = new List<File>();
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
+                using (var ctx = new FilesContext())
+                {
+                    result.AddRange(ctx.Search(searchString, watcherIds).Take(SearchResultSize));
+                }
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
+                var items = from file in result
+                            select MakeListViewItem(file, "Search Result");
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
+                this.Invoke((MethodInvoker)delegate
+                {
+                    ilvThumbs.Items.AddRange(items.ToArray(), Adaptor);
+                    SelectFirstIfExists();
+                });
+            }, token);
+        }
         private static ImageListViewItem MakeListViewItem(File model, string heading)
         {
             ImageListViewItem item = new ImageListViewItem(model, model.Name);
@@ -500,16 +538,39 @@ namespace ImageGallery
 
         private void Form1_Load(object sender, EventArgs e)
         {
-
         }
 
         private void searchTextBox_Click(object sender, EventArgs e)
         {
         }
 
+        private void Restore()
+        {
+            Show();
+            this.WindowState = FormWindowState.Normal;
+            if (PopoutPreviewButton.Checked)
+            {
+                popoutPreview.Show();
+            }
+            this.Activate();
+            // show this and popout, if popout enabled?
+        }
+        private void MoveToTray()
+        {
+            // hide this and popout?
+            popoutPreview.WindowState = FormWindowState.Minimized;
+            Hide();
+            popoutPreview.Hide();
+
+            // notify icon
+        }
+
         private void MainForm_KeyDown(object sender, KeyEventArgs e)
         {
-            //Console.WriteLine(e.KeyCode.ToString());
+            if (e.KeyCode == Keys.Escape)
+            {
+                this.WindowState = FormWindowState.Minimized;
+            }
             if (e.KeyCode == Keys.F5)
             {
                 RefreshView();
@@ -519,6 +580,10 @@ namespace ImageGallery
             {
                 ShowAllButton.PerformClick();
                 e.Handled = true;
+                e.SuppressKeyPress = true;
+            }
+            if (e.KeyCode == Keys.Escape)
+            {
                 e.SuppressKeyPress = true;
             }
         }
@@ -541,7 +606,6 @@ namespace ImageGallery
         {
             if (ShowAllButton.Checked)
             {
-                ShowAllReset = true;
                 ShowAllButton.Checked = false;
                 // This will already reset the view.
                 return;
@@ -554,12 +618,10 @@ namespace ImageGallery
             if (ShowAllButton.Checked)
             {
                 SearchResultSize = Int32.MaxValue;
-                ShowAllDefaultView = true;
             }
             else
             {
                 SearchResultSize = InitSearchResultSize;
-                ShowAllDefaultView = false;
             }
 
             RefreshView();
@@ -567,15 +629,16 @@ namespace ImageGallery
 
         private void searchTextBox_KeyDown(object sender, KeyEventArgs e)
         {
-            Console.WriteLine(e.KeyCode.ToString());
             if (e.KeyCode == Keys.Enter)
             {
                 e.SuppressKeyPress = true;
             }
-            if (e.KeyCode == Keys.ControlKey)
+            if (e.KeyCode == Keys.O && e.Modifiers == Keys.Control)
             {
+                OpenButton.PerformClick();
                 e.SuppressKeyPress = true;
             }
+
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -591,12 +654,9 @@ namespace ImageGallery
             if (Properties.Settings.Default.MainPosSet)
             {
 
-                Console.WriteLine($"{Left}, {Top}");
 
                 StartPosition = FormStartPosition.Manual;
                 Location = new Point(settings.MainX, settings.MainY);
-                Console.WriteLine($"{new Point(settings.MainX, settings.MainY)}");
-                Console.WriteLine($"{Location}");
                 Refresh();
 
 
@@ -604,11 +664,11 @@ namespace ImageGallery
             splitContainer1.SplitterDistance = settings.SplitterDistance;
             if (settings.PopoutShow)
             {
-                Console.WriteLine("Set starting location");
-
                 // Set the location before pressing button.
                 popoutPreview.StartPosition = FormStartPosition.Manual;
                 popoutPreview.Location = new Point(settings.PopoutX, settings.PopoutY);
+                popoutPreview.Width = settings.PopoutWidth;
+                popoutPreview.Height = settings.PopoutHeight;
                 PopoutPreviewButton.Checked = true;
             } else
             {
@@ -634,6 +694,8 @@ namespace ImageGallery
             {
                 settings.PopoutX = popoutPreview.Left;
                 settings.PopoutY = popoutPreview.Top;
+                settings.PopoutWidth = popoutPreview.Width;
+                settings.PopoutHeight = popoutPreview.Height;
             }
             settings.ActiveWatchers = GetActiveIdsConfigString();
             settings.Save();
@@ -658,7 +720,6 @@ namespace ImageGallery
 
         private void SetActiveIdsFromConfigString(string idsConfigString)
         {
-            Console.WriteLine($"{idsConfigString.Split(',').First()}");
             HashSet<int> ids = idsConfigString.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(Int32.Parse).ToHashSet();
             foreach (var item in WatcherDropDown.DropDownItems)
             {
@@ -672,6 +733,46 @@ namespace ImageGallery
         private static int GetWatcherIdFromToolStripObject(Object o)
         {
             return ((Watcher)(((ToolStripMenuItem)o).Tag)).Id;
+        }
+
+        private void PopoutPreviewButton_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void RefreshButton_Click(object sender, EventArgs e)
+        {
+            RefreshView();
+
+        }
+
+        private void OpenButton_Click(object sender, EventArgs e)
+        {
+            var numSelected = ilvThumbs.SelectedItems.Count;
+            if (numSelected != 1)
+            {
+                return;
+            }
+            File file = (File)ilvThumbs.SelectedItems[0].VirtualItemKey;
+            System.Diagnostics.Process.Start("explorer.exe", file.FullName);
+        }
+
+        private void ilvThumbs_Enter(object sender, EventArgs e)
+        {
+            //SelectFirstIfExists();
+        }
+
+        private void toolStrip1_Enter(object sender, EventArgs e)
+        {
+            searchTextBox.Focus();
+        }
+
+        private void MainForm_Resize(object sender, EventArgs e)
+        {
+            if (WindowState == FormWindowState.Minimized)
+            {
+                MoveToTray();
+            }
         }
     }
     

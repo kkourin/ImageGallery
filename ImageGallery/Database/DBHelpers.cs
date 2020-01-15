@@ -112,14 +112,14 @@ namespace ImageGallery.Database
 
 
 
-        // If extensions is empty, returns ALL.
+        // If extensions is empty, returns ALL. Note: only counts white listed files.
         public static Dictionary<string, DateTime> GetAllFileInfo(Watcher watcher)
         {
             var dir = watcher.Directory;
             return GetAllFileInfoInDirectory(watcher, dir);
         }
 
-        // If extensions is empty, returns ALL.
+        // If extensions is empty, returns ALL. Note: only counts white listed files.
         public static Dictionary<string, DateTime> GetAllFileInfoInDirectory(Watcher watcher, string dir)
         {
             if (!Directory.Exists(dir))

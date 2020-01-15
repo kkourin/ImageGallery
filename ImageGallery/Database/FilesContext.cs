@@ -112,7 +112,7 @@ namespace ImageGallery.Database
                         ")"
                         , Query).AsNoTracking()
                    where watchers.Contains(file.WatcherId)
-                   orderby file.FileModifiedTime
+                   orderby file.FileModifiedTime descending
                    select file;
         }
         public static string MakeQuery(string textInput)
@@ -322,8 +322,20 @@ namespace ImageGallery.Database
             {
                 return;
             }
+
             foreach (var filename in filesInDir.Keys)
             {
+                var files = FilesWithName(filename, watcher).ToList();
+                var fileInfo = new FileInfo(filename);
+                if (files.Any())
+                {
+                    if (!(fileInfo.Exists && fileInfo.LastWriteTimeUtc == files.First().FileModifiedTime))
+                    {
+                        UpdateFileContents(files.First(), fileInfo, watcher);
+                    }
+                    continue;
+                }
+                Console.WriteLine("Writing file for created sync.");
                 Files.Add(MakeFileModel(new FileInfo(filename), watcher));
             }
             SaveChanges();

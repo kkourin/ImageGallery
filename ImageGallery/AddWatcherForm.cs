@@ -12,6 +12,8 @@ namespace ImageGallery
 {
     using Database;
     using Database.Models;
+    using Microsoft.WindowsAPICodePack.Dialogs;
+
     public partial class AddWatcherForm : Form
     {
         public Watcher AddedWatcher { get; set; }
@@ -96,15 +98,15 @@ namespace ImageGallery
 
         private void FileSelectButton_Click(object sender, EventArgs e)
         {
-            using (var fbd = new FolderBrowserDialog())
+            using (var dialog = new CommonOpenFileDialog())
             {
-                DialogResult result = fbd.ShowDialog();
-
-                if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                dialog.IsFolderPicker = true;
+                if (dialog.ShowDialog() == CommonFileDialogResult.Ok && !string.IsNullOrWhiteSpace(dialog.FileName))
                 {
-                    DirectoryTextBox.Text = fbd.SelectedPath;
+                    DirectoryTextBox.Text = dialog.FileName;
                 }
             }
+
         }
     }
 }

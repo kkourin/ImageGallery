@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Manina.Windows.Forms;
 using System.Threading;
+using System.IO;
 
 namespace ImageGallery
 {
@@ -58,9 +59,15 @@ namespace ImageGallery
             {
                 try
                 {
-                    Icon icon = System.Drawing.Icon.ExtractAssociatedIcon(file.FullName);
+                    Icon icon = Helpers.ExtractAssociatedIcon(file.FullName);
+                    //Icon icon = System.Drawing.Icon.ExtractAssociatedIcon(file.FullName);
                     return icon.ToBitmap();
-                } catch (ArgumentException)
+                }
+                catch (ArgumentException)
+                {
+                    return null;
+                }
+                catch (FileNotFoundException)
                 {
                     return null;
                 }

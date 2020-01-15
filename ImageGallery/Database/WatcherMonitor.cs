@@ -19,7 +19,7 @@ namespace ImageGallery.Database
                         public string LastError { get; set; } = "";
         }
         Dictionary<int, FSWatcherTaskPack> watchers;
-        private int WaitInterval = 5000;
+        private int WaitInterval = 10000;
         public WatcherMonitor()
         {
             watchers = new Dictionary<int, FSWatcherTaskPack>();
@@ -83,17 +83,7 @@ namespace ImageGallery.Database
 
 
         }
-        public void StopAll()
-        {
-            foreach (var pack in watchers.Values)
-            {
-                pack.FSWatcher.Stop();
-            }
-            foreach (var pack in watchers.Values)
-            {
-                pack.Task.Wait();
-            }
-        }
+
 
         public class AddFailure : Exception
         {
@@ -102,7 +92,25 @@ namespace ImageGallery.Database
             {
             }
         }
-
+        public void StopAll()
+        {
+            foreach (var pack in watchers.Values)
+            {
+                pack.FSWatcher.Stop();
+            }
+            foreach (var pack in watchers.Values)
+            {
+                try
+                {
+                    pack.Task.Wait();
+                }
+                catch (Exception e)
+                {
+                    // Pass... TODO: filter only useful expcetions
+                }
+                watchers.Remove(pack.Watcher.Id);
+            }
+        }
         public void Stop(Watcher watcher)
         {
             FSWatcherTaskPack pack;
@@ -111,9 +119,16 @@ namespace ImageGallery.Database
                 return;
             }
             pack.FSWatcher.Stop();
-            pack.Task.Wait();
+            try
+            {
+                pack.Task.Wait();
+            } catch (Exception e)
+            {
+                // Pass... TODO: filter only useful expcetions
+            }
             watchers.Remove(watcher.Id);
         }
+
 
         public string GetLastError(int id)
         {

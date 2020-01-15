@@ -31,30 +31,29 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.ilvThumbs = new Manina.Windows.Forms.ImageListView();
+            this.GalleryRightClick = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.OpenButton = new System.Windows.Forms.ToolStripMenuItem();
             this.previewBox = new System.Windows.Forms.PictureBox();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.infoLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
-            this.toolStripButton2 = new System.Windows.Forms.ToolStripButton();
             this.searchTextBox = new System.Windows.Forms.ToolStripTextBox();
+            this.RefreshButton = new System.Windows.Forms.ToolStripButton();
             this.sortButton = new System.Windows.Forms.ToolStripDropDownButton();
             this.nameSort = new System.Windows.Forms.ToolStripMenuItem();
             this.usedOrder = new System.Windows.Forms.ToolStripMenuItem();
             this.createdSort = new System.Windows.Forms.ToolStripMenuItem();
             this.timesUsedSort = new System.Windows.Forms.ToolStripMenuItem();
-            this.popoutButton = new System.Windows.Forms.ToolStripButton();
-            this.WatchersButton = new System.Windows.Forms.ToolStripButton();
             this.WatcherDropDown = new System.Windows.Forms.ToolStripDropDownButton();
             this.ShowAllButton = new System.Windows.Forms.ToolStripButton();
+            this.PopoutPreviewButton = new System.Windows.Forms.ToolStripButton();
             this.InfoPanel = new System.Windows.Forms.Panel();
             this.LoadingLabel = new System.Windows.Forms.Label();
-            this.NameLabel = new System.Windows.Forms.Label();
             this.NameListLabel = new System.Windows.Forms.Label();
+            this.NameLabel = new System.Windows.Forms.Label();
             this.NameToolTip = new System.Windows.Forms.ToolTip(this.components);
-            this.PopoutPreviewButton = new System.Windows.Forms.ToolStripButton();
-            this.GalleryRightClick = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.testItemToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.GalleryRightClick.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.previewBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -63,7 +62,6 @@
             this.statusStrip.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.InfoPanel.SuspendLayout();
-            this.GalleryRightClick.SuspendLayout();
             this.SuspendLayout();
             // 
             // ilvThumbs
@@ -78,14 +76,31 @@
             this.ilvThumbs.PersistentCacheDirectory = "";
             this.ilvThumbs.PersistentCacheSize = ((long)(0));
             this.ilvThumbs.Size = new System.Drawing.Size(783, 512);
-            this.ilvThumbs.TabIndex = 1;
+            this.ilvThumbs.TabIndex = 2;
             this.ilvThumbs.UseEmbeddedThumbnails = Manina.Windows.Forms.UseEmbeddedThumbnails.Never;
             this.ilvThumbs.UseWIC = true;
             this.ilvThumbs.ItemDoubleClick += new Manina.Windows.Forms.ItemDoubleClickEventHandler(this.ilvThumbs_ItemDoubleClick);
             this.ilvThumbs.SelectionChanged += new System.EventHandler(this.ilvThumbs_SelectionChanged);
+            this.ilvThumbs.Enter += new System.EventHandler(this.ilvThumbs_Enter);
+            // 
+            // GalleryRightClick
+            // 
+            this.GalleryRightClick.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.OpenButton});
+            this.GalleryRightClick.Name = "GalleryRightClick";
+            this.GalleryRightClick.Size = new System.Drawing.Size(147, 26);
+            // 
+            // OpenButton
+            // 
+            this.OpenButton.Name = "OpenButton";
+            this.OpenButton.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
+            this.OpenButton.Size = new System.Drawing.Size(146, 22);
+            this.OpenButton.Text = "Open";
+            this.OpenButton.Click += new System.EventHandler(this.OpenButton_Click);
             // 
             // previewBox
             // 
+            this.previewBox.ContextMenuStrip = this.GalleryRightClick;
             this.previewBox.Dock = System.Windows.Forms.DockStyle.Fill;
             this.previewBox.Location = new System.Drawing.Point(0, 0);
             this.previewBox.MinimumSize = new System.Drawing.Size(150, 0);
@@ -115,7 +130,8 @@
             this.splitContainer1.Panel2MinSize = 100;
             this.splitContainer1.Size = new System.Drawing.Size(1084, 561);
             this.splitContainer1.SplitterDistance = 785;
-            this.splitContainer1.TabIndex = 4;
+            this.splitContainer1.TabIndex = 0;
+            this.splitContainer1.TabStop = false;
             // 
             // statusStrip
             // 
@@ -136,11 +152,9 @@
             // toolStrip1
             // 
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripButton2,
             this.searchTextBox,
+            this.RefreshButton,
             this.sortButton,
-            this.popoutButton,
-            this.WatchersButton,
             this.WatcherDropDown,
             this.ShowAllButton,
             this.PopoutPreviewButton});
@@ -148,18 +162,10 @@
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
             this.toolStrip1.Size = new System.Drawing.Size(783, 25);
-            this.toolStrip1.TabIndex = 0;
+            this.toolStrip1.TabIndex = 1;
             this.toolStrip1.TabStop = true;
             this.toolStrip1.Text = "toolStrip1";
-            // 
-            // toolStripButton2
-            // 
-            this.toolStripButton2.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripButton2.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton2.Image")));
-            this.toolStripButton2.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripButton2.Name = "toolStripButton2";
-            this.toolStripButton2.Size = new System.Drawing.Size(23, 22);
-            this.toolStripButton2.Text = "toolStripButton2";
+            this.toolStrip1.Enter += new System.EventHandler(this.toolStrip1_Enter);
             // 
             // searchTextBox
             // 
@@ -170,6 +176,16 @@
             this.searchTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.searchTextBox_KeyDown);
             this.searchTextBox.Click += new System.EventHandler(this.searchTextBox_Click);
             this.searchTextBox.TextChanged += new System.EventHandler(this.searchTextBox_TextChanged);
+            // 
+            // RefreshButton
+            // 
+            this.RefreshButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.RefreshButton.Image = ((System.Drawing.Image)(resources.GetObject("RefreshButton.Image")));
+            this.RefreshButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.RefreshButton.Name = "RefreshButton";
+            this.RefreshButton.Size = new System.Drawing.Size(23, 22);
+            this.RefreshButton.Text = "RefreshButton";
+            this.RefreshButton.Click += new System.EventHandler(this.RefreshButton_Click);
             // 
             // sortButton
             // 
@@ -187,47 +203,27 @@
             // nameSort
             // 
             this.nameSort.Name = "nameSort";
-            this.nameSort.Size = new System.Drawing.Size(180, 22);
+            this.nameSort.Size = new System.Drawing.Size(151, 22);
             this.nameSort.Text = "Name";
             // 
             // usedOrder
             // 
             this.usedOrder.Name = "usedOrder";
-            this.usedOrder.Size = new System.Drawing.Size(180, 22);
+            this.usedOrder.Size = new System.Drawing.Size(151, 22);
             this.usedOrder.Text = "Date Last Used";
             this.usedOrder.Click += new System.EventHandler(this.usedOrder_Click);
             // 
             // createdSort
             // 
             this.createdSort.Name = "createdSort";
-            this.createdSort.Size = new System.Drawing.Size(180, 22);
+            this.createdSort.Size = new System.Drawing.Size(151, 22);
             this.createdSort.Text = "Date Created";
             // 
             // timesUsedSort
             // 
             this.timesUsedSort.Name = "timesUsedSort";
-            this.timesUsedSort.Size = new System.Drawing.Size(180, 22);
+            this.timesUsedSort.Size = new System.Drawing.Size(151, 22);
             this.timesUsedSort.Text = "Times Used";
-            // 
-            // popoutButton
-            // 
-            this.popoutButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.popoutButton.Image = ((System.Drawing.Image)(resources.GetObject("popoutButton.Image")));
-            this.popoutButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.popoutButton.Name = "popoutButton";
-            this.popoutButton.Size = new System.Drawing.Size(94, 22);
-            this.popoutButton.Text = "Popout Preview";
-            this.popoutButton.Click += new System.EventHandler(this.toolStripButton1_Click);
-            // 
-            // WatchersButton
-            // 
-            this.WatchersButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.WatchersButton.Image = ((System.Drawing.Image)(resources.GetObject("WatchersButton.Image")));
-            this.WatchersButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.WatchersButton.Name = "WatchersButton";
-            this.WatchersButton.Size = new System.Drawing.Size(60, 22);
-            this.WatchersButton.Text = "Watchers";
-            this.WatchersButton.Click += new System.EventHandler(this.watchersButton_Click_1);
             // 
             // WatcherDropDown
             // 
@@ -248,6 +244,18 @@
             this.ShowAllButton.Size = new System.Drawing.Size(57, 22);
             this.ShowAllButton.Text = "Show All";
             this.ShowAllButton.CheckedChanged += new System.EventHandler(this.ShowAllButton_CheckedChanged);
+            // 
+            // PopoutPreviewButton
+            // 
+            this.PopoutPreviewButton.CheckOnClick = true;
+            this.PopoutPreviewButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.PopoutPreviewButton.Image = ((System.Drawing.Image)(resources.GetObject("PopoutPreviewButton.Image")));
+            this.PopoutPreviewButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.PopoutPreviewButton.Name = "PopoutPreviewButton";
+            this.PopoutPreviewButton.Size = new System.Drawing.Size(50, 22);
+            this.PopoutPreviewButton.Text = "Popout";
+            this.PopoutPreviewButton.CheckedChanged += new System.EventHandler(this.PopoutPreviewButton_CheckedChanged);
+            this.PopoutPreviewButton.Click += new System.EventHandler(this.PopoutPreviewButton_Click);
             // 
             // InfoPanel
             // 
@@ -270,17 +278,6 @@
             this.LoadingLabel.Text = "Loading preview...";
             this.LoadingLabel.Visible = false;
             // 
-            // NameLabel
-            // 
-            this.NameLabel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.NameLabel.Location = new System.Drawing.Point(0, 0);
-            this.NameLabel.Name = "NameLabel";
-            this.NameLabel.Padding = new System.Windows.Forms.Padding(40, 3, 3, 3);
-            this.NameLabel.Size = new System.Drawing.Size(293, 77);
-            this.NameLabel.TabIndex = 1;
-            this.NameLabel.Text = "No file selected.";
-            this.NameToolTip.SetToolTip(this.NameLabel, "None");
-            // 
             // NameListLabel
             // 
             this.NameListLabel.AutoSize = true;
@@ -290,29 +287,16 @@
             this.NameListLabel.TabIndex = 0;
             this.NameListLabel.Text = "Name:";
             // 
-            // PopoutPreviewButton
+            // NameLabel
             // 
-            this.PopoutPreviewButton.CheckOnClick = true;
-            this.PopoutPreviewButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.PopoutPreviewButton.Image = ((System.Drawing.Image)(resources.GetObject("PopoutPreviewButton.Image")));
-            this.PopoutPreviewButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.PopoutPreviewButton.Name = "PopoutPreviewButton";
-            this.PopoutPreviewButton.Size = new System.Drawing.Size(50, 22);
-            this.PopoutPreviewButton.Text = "Popout";
-            this.PopoutPreviewButton.CheckedChanged += new System.EventHandler(this.PopoutPreviewButton_CheckedChanged);
-            // 
-            // GalleryRightClick
-            // 
-            this.GalleryRightClick.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.testItemToolStripMenuItem});
-            this.GalleryRightClick.Name = "GalleryRightClick";
-            this.GalleryRightClick.Size = new System.Drawing.Size(181, 48);
-            // 
-            // testItemToolStripMenuItem
-            // 
-            this.testItemToolStripMenuItem.Name = "testItemToolStripMenuItem";
-            this.testItemToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.testItemToolStripMenuItem.Text = "test item";
+            this.NameLabel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.NameLabel.Location = new System.Drawing.Point(0, 0);
+            this.NameLabel.Name = "NameLabel";
+            this.NameLabel.Padding = new System.Windows.Forms.Padding(40, 3, 3, 3);
+            this.NameLabel.Size = new System.Drawing.Size(293, 77);
+            this.NameLabel.TabIndex = 0;
+            this.NameLabel.Text = "No file selected.";
+            this.NameToolTip.SetToolTip(this.NameLabel, "None");
             // 
             // MainForm
             // 
@@ -327,6 +311,8 @@
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.MainForm_KeyDown);
+            this.Resize += new System.EventHandler(this.MainForm_Resize);
+            this.GalleryRightClick.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.previewBox)).EndInit();
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel1.PerformLayout();
@@ -339,7 +325,6 @@
             this.toolStrip1.PerformLayout();
             this.InfoPanel.ResumeLayout(false);
             this.InfoPanel.PerformLayout();
-            this.GalleryRightClick.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -352,8 +337,7 @@
         private System.Windows.Forms.StatusStrip statusStrip;
         private System.Windows.Forms.ToolStripStatusLabel infoLabel;
         private System.Windows.Forms.ToolStrip toolStrip1;
-        private System.Windows.Forms.ToolStripButton popoutButton;
-        private System.Windows.Forms.ToolStripButton toolStripButton2;
+        private System.Windows.Forms.ToolStripButton RefreshButton;
         private System.Windows.Forms.ToolStripTextBox searchTextBox;
         private System.Windows.Forms.ToolStripDropDownButton sortButton;
         private System.Windows.Forms.ToolStripMenuItem nameSort;
@@ -365,12 +349,11 @@
         private System.Windows.Forms.Label NameLabel;
         private System.Windows.Forms.ToolTip NameToolTip;
         private System.Windows.Forms.Label LoadingLabel;
-        private System.Windows.Forms.ToolStripButton WatchersButton;
         private System.Windows.Forms.ToolStripDropDownButton WatcherDropDown;
         private System.Windows.Forms.ToolStripButton ShowAllButton;
         private System.Windows.Forms.ToolStripButton PopoutPreviewButton;
         private System.Windows.Forms.ContextMenuStrip GalleryRightClick;
-        private System.Windows.Forms.ToolStripMenuItem testItemToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem OpenButton;
     }
 }
 
