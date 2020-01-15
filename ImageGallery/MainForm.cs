@@ -551,6 +551,7 @@ namespace ImageGallery
             if (PopoutPreviewButton.Checked)
             {
                 popoutPreview.Show();
+                popoutPreview.WindowState = FormWindowState.Normal;
             }
             this.Activate();
             // show this and popout, if popout enabled?
