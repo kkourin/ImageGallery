@@ -9,10 +9,18 @@ using Microsoft.EntityFrameworkCore;
 namespace ImageGallery
 {
     using Database;
+    using System.Threading;
+
     static class Program
     {
+#if DEBUG
+        static Mutex mutex = new Mutex(true, "{79e2b92a-1b4d-4c63-afd1-086dd4ca20d7}");
+#else
+        static Mutex mutex = new Mutex(true, "{cfc6b5e4-6337-4744-8844-b554f9cc62ea}");
+#endif
         public static void InitDatabase()
         {
+
             var config = new DatabaseConfig();
             FilesContext.Config = config;
             using (var ctx = new FilesContext())
@@ -27,12 +35,28 @@ namespace ImageGallery
         [STAThread]
         static void Main()
         {
-            InitDatabase();
-            //Properties.Settings.Default
-            var monitor = WatcherMonitor.InitMonitorFromDB();
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainForm(monitor));
+
+            if (mutex.WaitOne(TimeSpan.Zero, true))
+            {
+                try
+                {
+                    InitDatabase();
+                    var monitor = WatcherMonitor.InitMonitorFromDB();
+                    Application.EnableVisualStyles();
+                    Application.SetCompatibleTextRenderingDefault(false);
+                    Application.Run(new MainForm(monitor));
+                }
+                finally
+                {
+                    mutex.ReleaseMutex();
+                }
+            }
+            else
+            {
+                Helpers.DoShowMe();
+            }
+
+            
         }
     }
 }

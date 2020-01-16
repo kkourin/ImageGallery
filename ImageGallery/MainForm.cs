@@ -1,27 +1,22 @@
-﻿using System;
+﻿using Manina.Windows.Forms;
+using Microsoft.EntityFrameworkCore;
+using NHotkey.WindowsForms;
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Manina.Windows.Forms;
-using Manina.Windows.Forms.ImageListViewRenderers;
-using Microsoft.EntityFrameworkCore;
-using Cyotek.Windows.Forms;
-using NHotkey.WindowsForms;
 
 namespace ImageGallery
 {
     using Database;
     using Database.Models;
     using NHotkey;
+    using System.Configuration;
 
     public partial class MainForm : Form
     {
@@ -46,11 +41,16 @@ namespace ImageGallery
         {
             // Init Form
             InitializeComponent();
+            
             WatcherDropDown.DropDown.Closing += WatcherDropDown_Closing;
+            Helpers.DisableFormTransition(Handle);
+
+            // Init tray component
+            MinimizedIcon.Icon = Properties.Resources.TrayIcon;
 
             // Add hotkeys
-            HotkeyManager.Current.AddOrReplace("test", Keys.Control | Keys.Shift | Keys.D3, OpenGalleryHotkey_Press);
-
+            HotkeyManager.Current.AddOrReplace("Open", Keys.Control | Keys.Shift | Keys.D3, OpenGalleryHotkey_Press);
+            
             // Fill fields
             Monitor = monitor;
             ManageWatchersButton = new ToolStripMenuItem("Manage Watchers", null, ManageWatchersButton_onClick);
@@ -64,9 +64,9 @@ namespace ImageGallery
 
             // Load configuration
             LoadConfiguration();
+            
 
-
-            ilvThumbs.SetRenderer(new TestRenderer());
+            ilvThumbs.SetRenderer(new GalleryRenderer());
             ilvThumbs.Columns.Add(ColumnType.Name);
 
             // Set up grouper.
@@ -80,10 +80,27 @@ namespace ImageGallery
             ilvThumbs.SortColumn = 1;
             ilvThumbs.SortOrder = Manina.Windows.Forms.SortOrder.Descending;
 
-            ActiveControl = searchTextBox.Control;
+            if (searchTextBox.Enabled && searchTextBox.Visible)
+            {
+                ActiveControl = searchTextBox.Control;
+            }
 
             RefreshView();
 
+            // Add sync event handler
+            FSWatcher.SyncOccurred += FSWatcher_SyncOccurred;
+        }
+
+        private void FSWatcher_SyncOccurred(object sender, FSWatcher.SyncOccurredEventArgs e)
+        {
+            Console.WriteLine($"Sync event changed: {e.Changed}, {e.WatcherId}");
+            if (!e.Changed || !GetActiveWatcherIds().Contains(e.WatcherId)) {
+                return;
+            }
+            this.Invoke((MethodInvoker)delegate
+            {
+                RefreshView();
+            });
         }
 
         private void OpenGalleryHotkey_Press(object sender, HotkeyEventArgs e)
@@ -361,8 +378,7 @@ namespace ImageGallery
             Image thumbnail = ilvThumbs.SelectedItems[0].ThumbnailImage;
             File file = (File)ilvThumbs.SelectedItems[0].VirtualItemKey;
             this.NameLabel.Text = file.Name;
-            this.NameToolTip.Active = true;
-            this.NameToolTip.SetToolTip(this.NameLabel, file.Name);
+            this.PathLabel.Text = file.FullName;
             previewCts.Cancel();
             previewCts = new CancellationTokenSource();
             SetPreviewImage(thumbnail, file, previewCts.Token);
@@ -547,23 +563,21 @@ namespace ImageGallery
         private void Restore()
         {
             Show();
-            this.WindowState = FormWindowState.Normal;
+            WindowState = FormWindowState.Normal;
             if (PopoutPreviewButton.Checked)
             {
                 popoutPreview.Show();
+                popoutPreview.Activate();
                 popoutPreview.WindowState = FormWindowState.Normal;
             }
-            this.Activate();
-            // show this and popout, if popout enabled?
+            searchTextBox.Focus();
+            Activate();
         }
         private void MoveToTray()
         {
-            // hide this and popout?
             popoutPreview.WindowState = FormWindowState.Minimized;
             Hide();
             popoutPreview.Hide();
-
-            // notify icon
         }
 
         private void MainForm_KeyDown(object sender, KeyEventArgs e)
@@ -644,12 +658,19 @@ namespace ImageGallery
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
+            if (e.CloseReason == CloseReason.UserClosing)
+            {
+                MoveToTray();
+                e.Cancel = true;
+                return;
+            }
             SaveConfiguration();
         }
 
         private void LoadConfiguration()
         {
             var settings = Properties.Settings.Default;
+            
             Width = settings.MainWidth;
             Height = settings.MainHeight;
             if (Properties.Settings.Default.MainPosSet)
@@ -657,7 +678,8 @@ namespace ImageGallery
 
 
                 StartPosition = FormStartPosition.Manual;
-                Location = new Point(settings.MainX, settings.MainY);
+                Location = new Point(Math.Max(settings.MainX, 0), Math.Max(settings.MainY, 0));
+                Console.WriteLine(Properties.Settings.Default.PropertyValues.ToString());
                 Refresh();
 
 
@@ -667,7 +689,7 @@ namespace ImageGallery
             {
                 // Set the location before pressing button.
                 popoutPreview.StartPosition = FormStartPosition.Manual;
-                popoutPreview.Location = new Point(settings.PopoutX, settings.PopoutY);
+                popoutPreview.Location = new Point(Math.Max(settings.PopoutX, 0), Math.Max(settings.PopoutY, 0));
                 popoutPreview.Width = settings.PopoutWidth;
                 popoutPreview.Height = settings.PopoutHeight;
                 PopoutPreviewButton.Checked = true;
@@ -684,19 +706,42 @@ namespace ImageGallery
         private void SaveConfiguration()
         {
             var settings = Properties.Settings.Default;
-            settings.MainWidth = Width;
-            settings.MainHeight = Height;
-            settings.MainX = Left;
-            settings.MainY = Top;
+
+            if (WindowState == FormWindowState.Minimized)
+            {
+                settings.MainWidth = RestoreBounds.Width;
+                settings.MainHeight = RestoreBounds.Height;
+                settings.MainX = RestoreBounds.Left;
+                settings.MainY = RestoreBounds.Top;
+            }
+            else
+            {
+                settings.MainWidth = Width;
+                settings.MainHeight = Height;
+                settings.MainX = Left;
+                settings.MainY = Top;
+            }
             settings.MainPosSet = true;
+
             settings.SplitterDistance = splitContainer1.SplitterDistance;
+
             settings.PopoutShow = PopoutPreviewButton.Checked;
             if (PopoutPreviewButton.Checked)
             {
-                settings.PopoutX = popoutPreview.Left;
-                settings.PopoutY = popoutPreview.Top;
-                settings.PopoutWidth = popoutPreview.Width;
-                settings.PopoutHeight = popoutPreview.Height;
+                if (popoutPreview.WindowState == FormWindowState.Minimized)
+                {
+                    settings.MainWidth = RestoreBounds.Width;
+                    settings.MainHeight = RestoreBounds.Height;
+                    settings.MainX = RestoreBounds.Left;
+                    settings.MainY = RestoreBounds.Top;
+                }
+                else
+                {
+                    settings.PopoutX = popoutPreview.Left;
+                    settings.PopoutY = popoutPreview.Top;
+                    settings.PopoutWidth = popoutPreview.Width;
+                    settings.PopoutHeight = popoutPreview.Height;
+                }
             }
             settings.ActiveWatchers = GetActiveIdsConfigString();
             settings.Save();
@@ -775,6 +820,26 @@ namespace ImageGallery
                 MoveToTray();
             }
         }
+
+        private void MinimizedIcon_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            Restore();
+        }
+
+        private void TrayExitButton_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            if (m.Msg == Helpers.WM_SHOWME)
+            {
+                Restore();
+            }
+            base.WndProc(ref m);
+        }
+
     }
     
 

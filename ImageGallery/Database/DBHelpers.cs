@@ -128,7 +128,7 @@ namespace ImageGallery.Database
             }
             var files = from filename in Directory.EnumerateFiles(dir, "*", SearchOption.AllDirectories)
                         where watcher.WhitelistedFile(filename)
-                        select new KeyValuePair<string, DateTime>(filename, System.IO.File.GetLastWriteTime(filename));
+                        select new KeyValuePair<string, DateTime>(filename, System.IO.File.GetLastWriteTimeUtc(filename));
             return files.ToDictionary(kv => kv.Key, kv => kv.Value);
         }
 

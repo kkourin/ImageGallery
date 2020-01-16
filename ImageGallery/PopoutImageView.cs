@@ -50,6 +50,7 @@ namespace ImageGallery
         public PopoutPreview()
         {
             InitializeComponent();
+            Helpers.DisableFormTransition(Handle);
         }
 
         private void PopoutPreview_FormClosing(object sender, FormClosingEventArgs e)

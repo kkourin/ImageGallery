@@ -83,7 +83,7 @@ namespace ImageGallery.Database
         readonly Watcher watcher;
         readonly private Mutex SyncMutex;
         readonly System.Timers.Timer SyncTimer;
-        readonly WaitResult waitResult;
+        private readonly WaitResult waitResult;
         readonly FSWatcher fsWatcher;
 
         private readonly MemoryCache _changedCache;
@@ -94,7 +94,6 @@ namespace ImageGallery.Database
             Watcher watcher,
             Mutex mutex,
             System.Timers.Timer timer,
-            EventWaitHandle stoppedEwh,
             WaitResult waitResult,
             FSWatcher fsWatcher)
         {
@@ -268,6 +267,9 @@ namespace ImageGallery.Database
         readonly EventWaitHandle stoppedEwh = new EventWaitHandle(false, EventResetMode.ManualReset);
         WaitResult waitResult = new WaitResult();
         bool firstSync = true;
+
+        public static event EventHandler<SyncOccurredEventArgs> SyncOccurred;
+
         public FSWatcher(Watcher dirWatcher)
         {
             Watcher = dirWatcher;
@@ -285,7 +287,7 @@ namespace ImageGallery.Database
             syncTimer = new System.Timers.Timer(InitIntervalMillis);
             syncTimer.Elapsed += HandleSyncTimer;
             syncTimer.AutoReset = false;
-            queue = new FileEventQueue(Watcher, syncMutex, syncTimer, stoppedEwh, waitResult, this);
+            queue = new FileEventQueue(Watcher, syncMutex, syncTimer, waitResult, this);
         }
 
         private static string GetFilter(HashSet<string> whitelist)
@@ -353,7 +355,8 @@ namespace ImageGallery.Database
             {
                 using (var ctx = new FilesContext())
                 {
-                    ctx.Sync(Watcher);
+                    var changed = ctx.Sync(Watcher);
+                    OnSyncOccurredEvent(new SyncOccurredEventArgs { Changed = changed, WatcherId = Watcher.Id });
                     syncTimer.Reset();
                 }
             } catch (Exception e)
@@ -365,7 +368,18 @@ namespace ImageGallery.Database
                 syncMutex.ReleaseMutex();
             }
         }
-   
+
+        public class SyncOccurredEventArgs : EventArgs
+        {
+            public bool Changed { get; set; }
+            public int WatcherId { get; set; }
+        }
+
+        protected virtual void OnSyncOccurredEvent(SyncOccurredEventArgs e)
+        {
+            SyncOccurred?.Invoke(this, e);
+        }
+
         public Task StartAndWait()
         {
             return Task.Run(() =>

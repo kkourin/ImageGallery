@@ -281,26 +281,31 @@ namespace ImageGallery.Database
                    where file.WatcherId == watcher.Id
                    select file;
         }
-        public void Sync(Watcher watcher)
+        public bool Sync(Watcher watcher)
         {
+            bool changed = false;
             var filesInDir = DBHelpers.GetAllFileInfo(watcher);
             if (filesInDir == null)
             {
-                return;
+                return false;
             }
             // Remove files no longer in folder.
             var toRemove = from file in GetAllFilesInWatcher(watcher).ToList()
                            where !filesInDir.ContainsKey(file.FullName)
                            select file;
+            changed |= toRemove.Any();
             Files.RemoveRange(toRemove);
 
             // Update updated files.
             var toUpdate = from file in GetAllFilesInWatcher(watcher).ToList()
-                           where filesInDir.ContainsKey(file.FullName) && filesInDir[file.FullName].Equals(file.FileModifiedTime)
+                           where filesInDir.ContainsKey(file.FullName) && !filesInDir[file.FullName].Equals(file.FileModifiedTime)
                            select file;
+
+            changed |= toUpdate.Any();
             foreach (var file in toUpdate)
             {
                 file.FileModifiedTime = filesInDir[file.FullName];
+                file.Thumbnail = DBHelpers.GetThumbnail(new FileInfo(file.FullName));
             }
 
             // Add files that are new.
@@ -311,8 +316,10 @@ namespace ImageGallery.Database
             Console.WriteLine($"Adding {filesInDir.Count()} files during sync.");
             var toAdd = from filename in filesInDir.Keys
                         select MakeFileModel(new FileInfo(filename), watcher);
+            changed |= toAdd.Any();
             Files.AddRange(toAdd);
             SaveChanges();
+            return changed;
         }
 
         public void SyncCreatedDirectory(Watcher watcher, string dir)

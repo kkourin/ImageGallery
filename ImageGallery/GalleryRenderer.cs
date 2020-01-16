@@ -11,7 +11,7 @@ namespace ImageGallery
 {
     // Literally copied from XPRenderer.
     using Manina.Windows.Forms;
-    public class TestRenderer : Manina.Windows.Forms.ImageListViewRenderers.XPRenderer
+    public class GalleryRenderer : Manina.Windows.Forms.ImageListViewRenderers.XPRenderer
     {
         public override Size MeasureItem(Manina.Windows.Forms.View view)
         {

@@ -53,6 +53,11 @@
             this.NameListLabel = new System.Windows.Forms.Label();
             this.NameLabel = new System.Windows.Forms.Label();
             this.NameToolTip = new System.Windows.Forms.ToolTip(this.components);
+            this.MinimizedIcon = new System.Windows.Forms.NotifyIcon(this.components);
+            this.TrayContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.TrayExitButton = new System.Windows.Forms.ToolStripMenuItem();
+            this.PathLabel = new System.Windows.Forms.Label();
+            this.PathListLabel = new System.Windows.Forms.Label();
             this.GalleryRightClick.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.previewBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -62,6 +67,7 @@
             this.statusStrip.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.InfoPanel.SuspendLayout();
+            this.TrayContextMenu.SuspendLayout();
             this.SuspendLayout();
             // 
             // ilvThumbs
@@ -164,7 +170,7 @@
             this.toolStrip1.Size = new System.Drawing.Size(783, 25);
             this.toolStrip1.TabIndex = 1;
             this.toolStrip1.TabStop = true;
-            this.toolStrip1.Text = "toolStrip1";
+            this.toolStrip1.Text = "MainToolStrip";
             this.toolStrip1.Enter += new System.EventHandler(this.toolStrip1_Enter);
             // 
             // searchTextBox
@@ -172,7 +178,7 @@
             this.searchTextBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.searchTextBox.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.searchTextBox.Name = "searchTextBox";
-            this.searchTextBox.Size = new System.Drawing.Size(200, 25);
+            this.searchTextBox.Size = new System.Drawing.Size(250, 25);
             this.searchTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.searchTextBox_KeyDown);
             this.searchTextBox.Click += new System.EventHandler(this.searchTextBox_Click);
             this.searchTextBox.TextChanged += new System.EventHandler(this.searchTextBox_TextChanged);
@@ -259,6 +265,8 @@
             // 
             // InfoPanel
             // 
+            this.InfoPanel.Controls.Add(this.PathListLabel);
+            this.InfoPanel.Controls.Add(this.PathLabel);
             this.InfoPanel.Controls.Add(this.LoadingLabel);
             this.InfoPanel.Controls.Add(this.NameListLabel);
             this.InfoPanel.Controls.Add(this.NameLabel);
@@ -281,7 +289,7 @@
             // NameListLabel
             // 
             this.NameListLabel.AutoSize = true;
-            this.NameListLabel.Location = new System.Drawing.Point(3, 3);
+            this.NameListLabel.Location = new System.Drawing.Point(4, 10);
             this.NameListLabel.Name = "NameListLabel";
             this.NameListLabel.Size = new System.Drawing.Size(38, 13);
             this.NameListLabel.TabIndex = 0;
@@ -289,14 +297,55 @@
             // 
             // NameLabel
             // 
-            this.NameLabel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.NameLabel.Location = new System.Drawing.Point(0, 0);
+            this.NameLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.NameLabel.AutoEllipsis = true;
+            this.NameLabel.Location = new System.Drawing.Point(42, 10);
             this.NameLabel.Name = "NameLabel";
-            this.NameLabel.Padding = new System.Windows.Forms.Padding(40, 3, 3, 3);
-            this.NameLabel.Size = new System.Drawing.Size(293, 77);
+            this.NameLabel.Size = new System.Drawing.Size(240, 20);
             this.NameLabel.TabIndex = 0;
             this.NameLabel.Text = "No file selected.";
-            this.NameToolTip.SetToolTip(this.NameLabel, "None");
+            // 
+            // MinimizedIcon
+            // 
+            this.MinimizedIcon.ContextMenuStrip = this.TrayContextMenu;
+            this.MinimizedIcon.Text = "Image Gallery";
+            this.MinimizedIcon.Visible = true;
+            this.MinimizedIcon.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.MinimizedIcon_MouseDoubleClick);
+            // 
+            // TrayContextMenu
+            // 
+            this.TrayContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.TrayExitButton});
+            this.TrayContextMenu.Name = "TrayContextMenu";
+            this.TrayContextMenu.Size = new System.Drawing.Size(94, 26);
+            // 
+            // TrayExitButton
+            // 
+            this.TrayExitButton.Name = "TrayExitButton";
+            this.TrayExitButton.Size = new System.Drawing.Size(93, 22);
+            this.TrayExitButton.Text = "Exit";
+            this.TrayExitButton.Click += new System.EventHandler(this.TrayExitButton_Click);
+            // 
+            // PathLabel
+            // 
+            this.PathLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.PathLabel.AutoEllipsis = true;
+            this.PathLabel.Location = new System.Drawing.Point(42, 25);
+            this.PathLabel.Name = "PathLabel";
+            this.PathLabel.Size = new System.Drawing.Size(240, 29);
+            this.PathLabel.TabIndex = 3;
+            // 
+            // PathListLabel
+            // 
+            this.PathListLabel.AutoSize = true;
+            this.PathListLabel.Location = new System.Drawing.Point(10, 25);
+            this.PathListLabel.Margin = new System.Windows.Forms.Padding(0);
+            this.PathListLabel.Name = "PathListLabel";
+            this.PathListLabel.Size = new System.Drawing.Size(32, 13);
+            this.PathListLabel.TabIndex = 4;
+            this.PathListLabel.Text = "Path:";
             // 
             // MainForm
             // 
@@ -325,6 +374,7 @@
             this.toolStrip1.PerformLayout();
             this.InfoPanel.ResumeLayout(false);
             this.InfoPanel.PerformLayout();
+            this.TrayContextMenu.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -354,6 +404,11 @@
         private System.Windows.Forms.ToolStripButton PopoutPreviewButton;
         private System.Windows.Forms.ContextMenuStrip GalleryRightClick;
         private System.Windows.Forms.ToolStripMenuItem OpenButton;
+        private System.Windows.Forms.NotifyIcon MinimizedIcon;
+        private System.Windows.Forms.ContextMenuStrip TrayContextMenu;
+        private System.Windows.Forms.ToolStripMenuItem TrayExitButton;
+        private System.Windows.Forms.Label PathListLabel;
+        private System.Windows.Forms.Label PathLabel;
     }
 }
 

@@ -8,7 +8,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-
+using System.Windows.Forms;
 
 namespace ImageGallery
 {
@@ -19,7 +19,8 @@ namespace ImageGallery
         public static readonly string[] VideoFileExtensions = new string[] { "mp4", "webm", "mkv", "avi", "vob", "ogv", "ogg", "mov", "qt", "wmv", "m4p", "m4v", "mpg", "mp2", "mpeg", "mpe", "mpv", "m2v", "m4v", "flv", "f4v" };
         private static readonly Color thumbnailBgColor;
 
-        static Helpers() {
+        static Helpers()
+        {
             thumbnailBgColor = Color.FromArgb(255, 238, 238, 238);
         }
 
@@ -66,7 +67,7 @@ namespace ImageGallery
             {
                 return null;
             }
-            
+
             // http://stackoverflow.com/questions/788335/why-does-image-fromfile-keep-a-file-handle-open-sometimes
             Image img = Image.FromStream(new MemoryStream(File.ReadAllBytes(file.FullName)));
 
@@ -229,7 +230,50 @@ namespace ImageGallery
         {
             [DllImport("shell32.dll", EntryPoint = "ExtractAssociatedIcon", CharSet = CharSet.Auto)]
             internal static extern IntPtr ExtractAssociatedIcon(HandleRef hInst, StringBuilder iconPath, ref int index);
+
+            [DllImport("user32")]
+            public static extern bool PostMessage(IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam);
+            [DllImport("user32")]
+            public static extern int RegisterWindowMessage(string message);
+
+            public const int HWND_BROADCAST = 0xffff;
+            public static readonly int WM_SHOWME = SafeNativeMethods.RegisterWindowMessage("WM_SHOWME");
         }
 
+
+        // Disable transitions
+        const int DWMWA_TRANSITIONS_FORCEDISABLED = 3;
+
+        [DllImport("dwmapi", PreserveSig = true)]
+        static extern int DwmSetWindowAttribute(IntPtr hWnd, int attr, ref int value, int attrLen);
+
+        public static void DisableFormTransition(IntPtr handle)
+        {
+            // in the form's constructor:
+            // (Note: in addition to checking the OS version for DWM support, you should also check
+            // that DWM composition is enabled---or at least gracefully handle the function's
+            // failure when it is not. Instead of S_OK, it will return DWM_E_COMPOSITIONDISABLED.)
+            if (Environment.OSVersion.Version.Major >= 6)
+            {
+                int value = 1;  // TRUE to disable
+                DwmSetWindowAttribute(handle,
+                                      DWMWA_TRANSITIONS_FORCEDISABLED,
+                                      ref value,
+                                      Marshal.SizeOf(value));
+            }
+        }
+
+
+        public static readonly int WM_SHOWME = SafeNativeMethods.RegisterWindowMessage("WM_SHOWME");
+
+        public static void DoShowMe()
+        {
+            SafeNativeMethods.PostMessage(
+                (IntPtr)SafeNativeMethods.HWND_BROADCAST,
+                SafeNativeMethods.WM_SHOWME,
+                IntPtr.Zero,
+                IntPtr.Zero);
+        }
     }
+
 }
