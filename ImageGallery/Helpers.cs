@@ -61,11 +61,12 @@ namespace ImageGallery
             return CheckExtension(filePath, ImageFileExtensions);
         }
 
+        // Throws argument exception.
         public static Image LoadImage(FileInfo file)
         {
-            if (!file.Exists || !IsImageFile(file.FullName))
+            if (!file.Exists)
             {
-                return null;
+                throw new ArgumentException($"File does not exist: {file.FullName}");
             }
 
             // http://stackoverflow.com/questions/788335/why-does-image-fromfile-keep-a-file-handle-open-sometimes
@@ -273,6 +274,21 @@ namespace ImageGallery
                 SafeNativeMethods.WM_SHOWME,
                 IntPtr.Zero,
                 IntPtr.Zero);
+        }
+
+        public static DateTime MaxTime(DateTime t1, DateTime t2)
+        {
+           return t1 > t2 ? t1 : t2;
+        }
+        
+
+        public static DateTime? LastChangeTime(FileInfo file)
+        {
+            if (!file.Exists)
+            {
+                return null;
+            }
+            return MaxTime(file.LastWriteTimeUtc, file.CreationTimeUtc);
         }
     }
 

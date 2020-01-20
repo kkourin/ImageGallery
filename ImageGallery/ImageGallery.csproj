@@ -54,6 +54,12 @@
     <Compile Include="Database\Models\File.cs" />
     <Compile Include="Database\Models\Watcher.cs" />
     <Compile Include="Database\WatcherMonitor.cs" />
+    <Compile Include="FileInfoPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="FileInfoPanel.Designer.cs">
+      <DependentUpon>FileInfoPanel.cs</DependentUpon>
+    </Compile>
     <Compile Include="FileModelAdapter.cs" />
     <Compile Include="GalleryRenderer.cs" />
     <Compile Include="ImageGrouper.cs" />
@@ -70,6 +76,10 @@
     <Compile Include="Migrations\20200110214252_UseHashForWhitelist.cs" />
     <Compile Include="Migrations\20200110214252_UseHashForWhitelist.designer.cs">
       <DependentUpon>20200110214252_UseHashForWhitelist.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\20200117051848_Add-LastChangedTime.cs" />
+    <Compile Include="Migrations\20200117051848_Add-LastChangedTime.designer.cs">
+      <DependentUpon>20200117051848_Add-LastChangedTime.cs</DependentUpon>
     </Compile>
     <Compile Include="PopoutImageView.cs">
       <SubType>Form</SubType>
@@ -101,6 +111,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="AddWatcherForm.resx">
       <DependentUpon>AddWatcherForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FileInfoPanel.resx">
+      <DependentUpon>FileInfoPanel.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>

@@ -41,11 +41,32 @@ namespace ImageGallery
         public override void DrawItem(System.Drawing.Graphics g, ImageListViewItem item, ItemState state, System.Drawing.Rectangle bounds)
         {
             // Paint background
+            var inner = bounds;
+            inner.Inflate(-1, -1);
+            System.Drawing.SolidBrush borderColor = new System.Drawing.SolidBrush(System.Drawing.Color.LightGray);
+
             if (ImageListView.Enabled || !item.Enabled)
-                g.FillRectangle(SystemBrushes.Window, bounds);
+
+            {
+                //Draw border
+                g.FillRectangle(borderColor, bounds);
+                // Fill inside
+                if (ImageListView.Focused && ((state & ItemState.Selected) != ItemState.None))
+                {
+                    g.FillRectangle(SystemBrushes.Highlight, inner);
+                }
+                else if (!ImageListView.Focused && ((state & ItemState.Selected) != ItemState.None))
+                {
+                    g.FillRectangle(SystemBrushes.GrayText, inner);
+                }
+                else
+                {
+                    g.FillRectangle(SystemBrushes.Window, inner);
+
+                }
+            }
             else
                 g.FillRectangle(SystemBrushes.Control, bounds);
-
             if (ImageListView.View != Manina.Windows.Forms.View.Details)
             {
                 Size itemPadding = new Size(4, 4);
@@ -58,7 +79,7 @@ namespace ImageGallery
                     Rectangle pos = Utility.GetSizedImageBounds(img, border);
                     g.DrawImage(img, pos);
 
-                    // Draw image border
+
                     if (ImageListView.Focused && ((state & ItemState.Selected) != ItemState.None))
                     {
                         using (Pen pen = new Pen(SystemColors.Highlight, 3))
@@ -97,13 +118,13 @@ namespace ImageGallery
                     );
                     sf.Alignment = StringAlignment.Center;
                     sf.FormatFlags = StringFormatFlags.LineLimit;
-                    //sf.FormatFlags = StringFormatFlags.NoWrap;
-                    //sf.LineAlignment = StringAlignment.Center;
                     sf.Trimming = StringTrimming.EllipsisCharacter;
                     rt.Width += 1;
                     rt.Inflate(1, 2);
                     if (ImageListView.Focused && ((state & ItemState.Focused) != ItemState.None))
                         rt.Inflate(-1, -1);
+                    // Highlight text rectangle on selection
+                    /*
                     if (ImageListView.Focused && ((state & ItemState.Selected) != ItemState.None))
                     {
                         g.FillRectangle(SystemBrushes.Highlight, rt);
@@ -112,6 +133,7 @@ namespace ImageGallery
                     {
                         g.FillRectangle(SystemBrushes.GrayText, rt);
                     }
+                    */
                     if ((state & ItemState.Disabled) != ItemState.None)
                     {
                         g.DrawString(item.Text, ImageListView.Font, SystemBrushes.GrayText, rt, sf);
@@ -125,14 +147,16 @@ namespace ImageGallery
                         g.DrawString(item.Text, ImageListView.Font, SystemBrushes.WindowText, rt, sf);
                     }
                 }
+                // focus text on focused item
                 
-
+                /*
                 if (ImageListView.Focused && ((state & ItemState.Focused) != ItemState.None))
                 {
                     Rectangle fRect = Rectangle.Round(rt);
                     fRect.Inflate(1, 1);
                     ControlPaint.DrawFocusRectangle(g, fRect);
                 }
+                */
                 
             }
             else // if (ImageListView.View == Manina.Windows.Forms.View.Details)

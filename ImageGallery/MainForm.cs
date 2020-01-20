@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Timers;
 
 namespace ImageGallery
 {
@@ -24,7 +25,12 @@ namespace ImageGallery
 
         PopoutPreview popoutPreview;
         Image previewImage;
+        private HashSet<int> VisibleIds = new HashSet<int>();
         Database.WatcherMonitor Monitor { get; set; }
+        public int refreshRequested = 0;
+        public System.Timers.Timer RefreshTimer { get; private set; }
+        private const int RefreshGracePeriod = 3000;
+
         private const int InitSearchResultSize = 50;
         private int SearchResultSize = InitSearchResultSize;
         private const int InitDefaultSearchSize = 10;
@@ -45,12 +51,15 @@ namespace ImageGallery
             WatcherDropDown.DropDown.Closing += WatcherDropDown_Closing;
             Helpers.DisableFormTransition(Handle);
 
+            // Start refresh timer
+            RefreshTimer = new System.Timers.Timer() { AutoReset = false, Interval =  RefreshGracePeriod};
+            RefreshTimer.Elapsed += RefreshTimer_Elapsed;
+
             // Init tray component
             MinimizedIcon.Icon = Properties.Resources.TrayIcon;
 
             // Add hotkeys
-            HotkeyManager.Current.AddOrReplace("Open", Keys.Control | Keys.Shift | Keys.D3, OpenGalleryHotkey_Press);
-            
+            AddHotkeys();            
             // Fill fields
             Monitor = monitor;
             ManageWatchersButton = new ToolStripMenuItem("Manage Watchers", null, ManageWatchersButton_onClick);
@@ -91,15 +100,20 @@ namespace ImageGallery
             FSWatcher.SyncOccurred += FSWatcher_SyncOccurred;
         }
 
+
+        private void AddHotkeys()
+        {
+#if DEBUG
+            HotkeyManager.Current.AddOrReplace("OpenDEBUG", Keys.Control | Keys.Shift | Keys.D3, OpenGalleryHotkey_Press);
+#else
+            HotkeyManager.Current.AddOrReplace("Open", Keys.Control | Keys.Shift | Keys.D2, OpenGalleryHotkey_Press);
+#endif
+        }
         private void FSWatcher_SyncOccurred(object sender, FSWatcher.SyncOccurredEventArgs e)
         {
-            Console.WriteLine($"Sync event changed: {e.Changed}, {e.WatcherId}");
-            if (!e.Changed || !GetActiveWatcherIds().Contains(e.WatcherId)) {
-                return;
-            }
             this.Invoke((MethodInvoker)delegate
             {
-                RefreshView();
+                OnSync(e);
             });
         }
 
@@ -216,6 +230,45 @@ namespace ImageGallery
             DisplaySearchTask(searchCts.Token);
         }
 
+        private void UncheckOtherSortOrders(ToolStripMenuItem selectedMenuItem)
+        {
+            foreach (var ltoolStripMenuItem in (from object
+                                                    item in sortButton.DropDownItems
+                                                let ltoolStripMenuItem = item as ToolStripMenuItem
+                                                where ltoolStripMenuItem != null
+                                                where !item.Equals(selectedMenuItem)
+                                                select ltoolStripMenuItem))
+                (ltoolStripMenuItem).Checked = false;
+        }
+
+        private FilesContext.SortColumn GetSortColumn()
+        {
+            foreach (var t in sortButton.DropDownItems)
+            {
+                var item = t as ToolStripMenuItem;
+                if (item.Checked)
+                {
+                    var orderString = (String)item.Tag;
+                    return (FilesContext.SortColumn) Enum.Parse(typeof(FilesContext.SortColumn), orderString);
+                }
+            }
+            return FilesContext.SortColumn.DateChanged;
+        }
+
+        private void SetSortColumn(FilesContext.SortColumn sort)
+        {
+            foreach (var t in sortButton.DropDownItems)
+            {
+                var item = t as ToolStripMenuItem;
+                var itemSort = (FilesContext.SortColumn)Enum.Parse(typeof(FilesContext.SortColumn), (String)item.Tag);
+                if (itemSort == sort)
+                {
+                    item.Checked = true;
+                    break;
+                }
+            }
+        }
+
         private Task DisplaySearchTask(CancellationToken token)
         {
             return Task.Run(() =>
@@ -229,7 +282,8 @@ namespace ImageGallery
                 }
                 using (var ctx = new FilesContext())
                 {
-                    result.AddRange(ctx.Search(searchString, watcherIds).Take(SearchResultSize));
+                    var f = ctx.Search(searchString, watcherIds, GetSortColumn()).Take(SearchResultSize);
+                    result.AddRange(ctx.Search(searchString, watcherIds, GetSortColumn()).Take(SearchResultSize));
                 }
                 if (token.IsCancellationRequested)
                 {
@@ -262,26 +316,28 @@ namespace ImageGallery
 
             using (var ctx = new FilesContext())
             {
-                var models = (from file in ctx.Files.AsNoTracking()
-                              where activeWatchers.Contains(file.WatcherId)
-                              orderby file.FileModifiedTime descending
-                              select MakeListViewItem(file, "All Items"));
-                items.AddRange(models);
+                var models = FilesContext.OrderBySort(from file in ctx.Files.AsNoTracking()
+                                                      where activeWatchers.Contains(file.WatcherId)
+                                                      select file, GetSortColumn());
+
+                items.AddRange(models.Select(file => MakeListViewItem(file, "All Items")));
             }
+            VisibleIds.Clear();
+            var itemsArray = items.ToArray();
+            VisibleIds = items.Select((t) => (t.VirtualItemKey as File).Id).ToHashSet();
             ilvThumbs.Items.AddRange(items.ToArray(), Adaptor);
         }
         private void ShowDefault()
         {
             var items = new List<ImageListViewItem>();
             var activeWatchers = GetActiveWatcherIds();
-            Console.WriteLine(activeWatchers.Count);
             using (var ctx = new FilesContext())
             {
 
                 // Recently Created
                 var modifiedModels = (from file in ctx.Files.AsNoTracking()
                                       where activeWatchers.Contains(file.WatcherId)
-                                      orderby file.FileModifiedTime descending
+                                      orderby file.LastChangeTime descending
                                       select MakeListViewItem(file, "Recently Created"));
                 var LastUsemodels = from file in ctx.Files.AsNoTracking()
                                     where activeWatchers.Contains(file.WatcherId)
@@ -299,7 +355,6 @@ namespace ImageGallery
             ilvThumbs.Sort();
         }
 
-
         public class ResultTypeComparer : IComparer<ImageListViewItem>
         {
             private static int CompareTimes(DateTime? t1, DateTime? t2)
@@ -316,7 +371,6 @@ namespace ImageGallery
             }
             public int Compare(ImageListViewItem x, ImageListViewItem y)
             {
-                //Console.WriteLine("Mehot used");
                 var xType = x.SubItems["Type"].Text;
                 var yType = y.SubItems["Type"].Text;
                 if (xType != yType)
@@ -355,15 +409,16 @@ namespace ImageGallery
             splitContainer1.Panel2Collapsed = false;
             RefreshPreviews();
         }
-        private void button1_Click(object sender, EventArgs e)
+        void SetInfoPanelFile(File file)
         {
-            //GC.Collect();
-            //ilvThumbs.View = Manina.Windows.Forms.View.Details;
-            foreach(var f in ilvThumbs.SelectedItems)
-            {
-                //Console.WriteLine(f.Text);
-            }
-            ShowPopoutPreview();
+            fileInfoPanel.File = file;
+            popoutPreview.FileInfoPanel.File = file;
+        }
+
+        void SetInfoPanelLoading(bool loading)
+        {
+            fileInfoPanel.Loading = loading;
+            popoutPreview.FileInfoPanel.Loading = loading;
         }
 
         private void ilvThumbs_SelectionChanged(object sender, EventArgs e)
@@ -371,14 +426,13 @@ namespace ImageGallery
             var numSelected = ilvThumbs.SelectedItems.Count;
             if (numSelected != 1)
             {
-                this.NameLabel.Text = "No file selected.";
+                SetInfoPanelFile(null);
                 this.NameToolTip.Active = false;
                 return;
             }
             Image thumbnail = ilvThumbs.SelectedItems[0].ThumbnailImage;
             File file = (File)ilvThumbs.SelectedItems[0].VirtualItemKey;
-            this.NameLabel.Text = file.Name;
-            this.PathLabel.Text = file.FullName;
+            SetInfoPanelFile(file);
             previewCts.Cancel();
             previewCts = new CancellationTokenSource();
             SetPreviewImage(thumbnail, file, previewCts.Token);
@@ -393,7 +447,7 @@ namespace ImageGallery
                 this.Invoke((MethodInvoker)delegate
                 {
                     RefreshPreviews();
-                    LoadingLabel.Visible = true;
+                    SetInfoPanelLoading(true);
                 });
                 if (token.IsCancellationRequested)
                 {
@@ -407,7 +461,7 @@ namespace ImageGallery
                 {
                     this.Invoke((MethodInvoker)delegate
                     {
-                        LoadingLabel.Visible = false;
+                        SetInfoPanelLoading(false);
                     });
                     return;
                 }
@@ -415,7 +469,7 @@ namespace ImageGallery
                 {
                     this.Invoke((MethodInvoker)delegate
                     {
-                        LoadingLabel.Visible = false;
+                        SetInfoPanelLoading(false);
                     });
                     return;
                 }
@@ -427,7 +481,7 @@ namespace ImageGallery
                 this.Invoke((MethodInvoker)delegate
                 {
                     RefreshPreviews();
-                    LoadingLabel.Visible = false;
+                    SetInfoPanelLoading(false);
                 });
             }, token);
         }
@@ -435,28 +489,29 @@ namespace ImageGallery
         private void ilvThumbs_ItemDoubleClick(object sender, ItemClickEventArgs e)
         {
             File file = (File)e.Item.VirtualItemKey;
-            CopyToClipboard(new List<File> { file });
-            using (var ctx = new FilesContext())
-            {
-                ctx.RecordUse(file);
-            }
-            RefreshView();
+            CopyToClipboard(new List<File> { file }, true);
+
         }
 
-        private void CopyToClipboard(List<File> files)
+        private void CopyToClipboard(List<File> files, bool moveToTray)
         {
+
             if (files.Count == 0)
             {
                 return;
             }
-            if (files.Count == 1)
+            else if (files.Count == 1)
             {
-                File file = files[0];
-                CopyToClipboard(file);
+                File file = files.First();
+                CopySingleToClipboard(file, moveToTray);
+            }
+            else if (files.Count > 1)
+            {
+                CopyMultipleToClipboard(files, moveToTray);
             }
             // TODO: multiple files selected
         }
-        private void CopyToClipboard(File file)
+        private void CopySingleToClipboard(File file, bool moveToTray)
         {
             FileInfo fileInfo = new FileInfo(file.FullName);
             if (Helpers.IsImageFile(fileInfo.Name))
@@ -465,8 +520,9 @@ namespace ImageGallery
                 try
                 {
                     image = Helpers.LoadImage(fileInfo);
-                } catch (ArgumentException)
+                } catch (ArgumentException e)
                 {
+                    infoLabel.Text = e.Message;
                     return;
                 }
                 if (image == null)
@@ -480,15 +536,41 @@ namespace ImageGallery
             }
             else
             {
-                if (fileInfo.Exists)
-                {
-                    StringCollection sc = new StringCollection();
-                    sc.Add(file.FullName);
-                    Clipboard.SetFileDropList(sc);
-                    infoLabel.Text = String.Format(
-                        "Copied file {0} to clipboard.",
-                        Helpers.Truncate(fileInfo.Name, 30));
-                }
+                StringCollection sc = new StringCollection();
+                sc.Add(file.FullName);
+                Clipboard.SetFileDropList(sc);
+                infoLabel.Text = String.Format(
+                    "Copied file {0} to clipboard.",
+                    Helpers.Truncate(fileInfo.Name, 30));
+            }
+            using (var ctx = new FilesContext())
+            {
+                ctx.RecordUse(file);
+            }
+            if (moveToTray)
+            {
+                MoveToTray();
+            }
+        }
+
+        private void CopyMultipleToClipboard(List<File> files, bool moveToTray)
+        {
+            if (!files.Any())
+            {
+                return;
+            }
+            StringCollection sc = new StringCollection();
+            sc.AddRange(files.Select(t => t.FullName).ToArray());
+            infoLabel.Text = String.Format(
+                $"Copied {files.Count} files to clipboard.");
+            Clipboard.SetFileDropList(sc);
+            using (var ctx = new FilesContext())
+            {
+                ctx.RecordUse(files);
+            }
+            if (moveToTray)
+            {
+                MoveToTray();
             }
         }
 
@@ -526,6 +608,8 @@ namespace ImageGallery
                 popoutPreview.PreviewImage = previewImage;
             }
             popoutPreview.Show();
+            popoutPreview.Activate();
+            Activate();
         }
 
         private void toolStripButton1_Click(object sender, EventArgs e)
@@ -539,10 +623,7 @@ namespace ImageGallery
             ShowPopoutPreview();
         }
 
-        private void usedOrder_Click(object sender, EventArgs e)
-        {
 
-        }
 
         private void watchersButton_Click_1(object sender, EventArgs e)
         {
@@ -572,6 +653,7 @@ namespace ImageGallery
             }
             searchTextBox.Focus();
             Activate();
+            RefreshView();
         }
         private void MoveToTray()
         {
@@ -582,37 +664,40 @@ namespace ImageGallery
 
         private void MainForm_KeyDown(object sender, KeyEventArgs e)
         {
+            if ((e.KeyCode == Keys.Enter || e.KeyCode == Keys.Return) && e.Modifiers == Keys.None)
+            {
+                CopyToClipboard(ilvThumbs.SelectedItems.Select(t => (File)t.VirtualItemKey).ToList(), true);
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                return;
+            }
             if (e.KeyCode == Keys.Escape)
             {
                 this.WindowState = FormWindowState.Minimized;
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                return;
             }
             if (e.KeyCode == Keys.F5)
             {
                 RefreshView();
                 e.Handled = true;
+                e.SuppressKeyPress = true;
+                return;
             }
             if (e.Modifiers == Keys.Control && e.KeyCode == Keys.E )
             {
                 ShowAllButton.PerformClick();
                 e.Handled = true;
                 e.SuppressKeyPress = true;
+                return;
             }
-            if (e.KeyCode == Keys.Escape)
+            if (e.Modifiers == Keys.Control && e.KeyCode == Keys.P)
             {
+                PopoutPreviewButton.PerformClick();
+                e.Handled = true;
                 e.SuppressKeyPress = true;
-            }
-        }
-
-        private void SearchButton_Click(object sender, EventArgs e)
-        {
-            var searchString = FilesContext.MakeQuery(searchTextBox.Text);
-            using(var ctx = new FilesContext())
-            {
-                var result = ctx.Search(searchString, GetActiveWatcherIds());
-                foreach (var f in result)
-                {
-                    Console.WriteLine(f.Name);
-                }
+                return;
             }
         }
 
@@ -675,14 +760,8 @@ namespace ImageGallery
             Height = settings.MainHeight;
             if (Properties.Settings.Default.MainPosSet)
             {
-
-
                 StartPosition = FormStartPosition.Manual;
                 Location = new Point(Math.Max(settings.MainX, 0), Math.Max(settings.MainY, 0));
-                Console.WriteLine(Properties.Settings.Default.PropertyValues.ToString());
-                Refresh();
-
-
             }
             splitContainer1.SplitterDistance = settings.SplitterDistance;
             if (settings.PopoutShow)
@@ -702,6 +781,8 @@ namespace ImageGallery
                 popoutPreview.Height = Height;
             }
             SetActiveIdsFromConfigString(settings.ActiveWatchers);
+            SetSortColumn((FilesContext.SortColumn)settings.SortColumn);
+
         }
         private void SaveConfiguration()
         {
@@ -737,15 +818,17 @@ namespace ImageGallery
                 }
                 else
                 {
-                    settings.PopoutX = popoutPreview.Left;
-                    settings.PopoutY = popoutPreview.Top;
                     settings.PopoutWidth = popoutPreview.Width;
                     settings.PopoutHeight = popoutPreview.Height;
+                    settings.PopoutX = popoutPreview.Left;
+                    settings.PopoutY = popoutPreview.Top;
                 }
             }
             settings.ActiveWatchers = GetActiveIdsConfigString();
+            settings.SortColumn = (int)GetSortColumn();
             settings.Save();
         }
+
 
         private void PopoutPreviewButton_CheckedChanged(object sender, EventArgs e)
         {
@@ -840,6 +923,149 @@ namespace ImageGallery
             base.WndProc(ref m);
         }
 
+        void OnSync(FSWatcher.SyncOccurredEventArgs e)
+        {
+            if (!e.Changed || !GetActiveWatcherIds().Contains(e.WatcherId))
+            {
+                return;
+            }
+
+            if (!RefreshTimer.Enabled)
+            {
+                this.Invoke((MethodInvoker)delegate
+                {
+                    RefreshView();
+                });
+                RefreshTimer.Enabled = true;
+            } else
+            {
+                refreshRequested = 1;
+            }
+        }
+
+        private void RefreshTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+
+            if (Interlocked.Exchange(ref refreshRequested, 0) != 0)
+            {
+                this.Invoke((MethodInvoker)delegate
+                {
+                    RefreshView();
+                });
+                RefreshTimer.Reset();
+            }
+            else
+            {
+
+                RefreshTimer.Enabled = false;
+            }
+        }
+
+        private void openFolderToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var numSelected = ilvThumbs.SelectedItems.Count;
+            if (numSelected != 1)
+            {
+                return;
+            }
+            File file = (File)ilvThumbs.SelectedItems[0].VirtualItemKey;
+            string argument = "/select, \"" + file.FullName + "\"";
+
+            System.Diagnostics.Process.Start("explorer.exe", argument);
+        }
+
+        private void SortOrderClicked(ToolStripMenuItem clicked)
+        {
+            if (clicked.Checked)
+            {
+                return;
+            }
+            UncheckOtherSortOrders(clicked);
+            clicked.Checked = true;
+            RefreshView();
+        }
+        private void usedOrder_Click(object sender, EventArgs e)
+        {
+            SortOrderClicked((ToolStripMenuItem)sender);
+        }
+
+        private void NameOrder_Click(object sender, EventArgs e)
+        {
+            SortOrderClicked((ToolStripMenuItem)sender);
+        }
+
+        private void CreatedOrder_Click(object sender, EventArgs e)
+        {
+            SortOrderClicked((ToolStripMenuItem)sender);
+        }
+
+        private void TimesUsedOrder_Click(object sender, EventArgs e)
+        {
+            SortOrderClicked((ToolStripMenuItem)sender);
+        }
+
+        private void fileInfoPanel_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void searchTextBox_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            
+        }
+
+        private void CopyFileButton_Click(object sender, EventArgs e)
+        {
+            CopyMultipleToClipboard(ilvThumbs.SelectedItems.Select(t => (File)t.VirtualItemKey).ToList(), false);
+        }
+
+        private void GalleryRightClick_Opening(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+
+        }
+
+        private void ilvThumbs_MouseClick(object sender, MouseEventArgs e)
+        {
+
+        }
+
+        private void GalleryRightClick_Opened(object sender, EventArgs e)
+        {
+
+        }
+
+        private void ilvThumbs_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                var numSelected = ilvThumbs.SelectedItems.Count;
+                if (numSelected != 1)
+                {
+                    CopyImageButton.Enabled = false;
+                    return;
+                }
+                File file = (File)ilvThumbs.SelectedItems[0].VirtualItemKey;
+                if (!Helpers.IsImageFile(file.FullName))
+                {
+                    CopyImageButton.Enabled = false;
+                }
+                else
+                {
+                    CopyImageButton.Enabled = true;
+                }
+            }
+        }
+
+        private void CopyImageButton_Click(object sender, EventArgs e)
+        {
+            var numSelected = ilvThumbs.SelectedItems.Count;
+            if (numSelected != 1)
+            {
+                return;
+            }
+            File file = (File)ilvThumbs.SelectedItems[0].VirtualItemKey;
+            CopySingleToClipboard(file, false);
+        }
     }
     
 

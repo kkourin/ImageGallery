@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.poppedPreviewBox = new Cyotek.Windows.Forms.ImageBox();
+            this.fileInfoPanel = new ImageGallery.FileInfoPanel();
             this.SuspendLayout();
             // 
             // poppedPreviewBox
@@ -40,9 +41,20 @@
             this.poppedPreviewBox.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Bicubic;
             this.poppedPreviewBox.Location = new System.Drawing.Point(0, 0);
             this.poppedPreviewBox.Name = "poppedPreviewBox";
-            this.poppedPreviewBox.Size = new System.Drawing.Size(800, 450);
+            this.poppedPreviewBox.Size = new System.Drawing.Size(800, 385);
             this.poppedPreviewBox.TabIndex = 0;
             this.poppedPreviewBox.Resize += new System.EventHandler(this.poppedPreviewBox_Resize);
+            // 
+            // fileInfoPanel
+            // 
+            this.fileInfoPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.fileInfoPanel.File = null;
+            this.fileInfoPanel.Loading = false;
+            this.fileInfoPanel.Location = new System.Drawing.Point(0, 385);
+            this.fileInfoPanel.Name = "fileInfoPanel";
+            this.fileInfoPanel.Padding = new System.Windows.Forms.Padding(3);
+            this.fileInfoPanel.Size = new System.Drawing.Size(800, 65);
+            this.fileInfoPanel.TabIndex = 1;
             // 
             // PopoutPreview
             // 
@@ -50,6 +62,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
             this.Controls.Add(this.poppedPreviewBox);
+            this.Controls.Add(this.fileInfoPanel);
             this.Name = "PopoutPreview";
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "Preview";
@@ -63,5 +76,6 @@
         #endregion
 
         private Cyotek.Windows.Forms.ImageBox poppedPreviewBox;
+        private FileInfoPanel fileInfoPanel;
     }
 }

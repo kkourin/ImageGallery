@@ -11,8 +11,8 @@ namespace ImageGallery
     {
         public static Dictionary<string, int> TypeDict = new Dictionary<string, int>
         {
-            {"Recently Used", 0 },
-            {"Recently Created", 1 },
+            {"Recently Created", 0 },
+            {"Recently Used", 1 },
             {"Frequently Used", 2 },
             {"Search Result", 3 },
             {"All Items", 4 }
@@ -20,7 +20,6 @@ namespace ImageGallery
         public ImageListView.GroupInfo GetGroupInfo(ImageListViewItem item)
         {
             var text = item.SubItems["Type"].Text;
-            //Console.WriteLine(text + TypeDict[text]);
 
             return new ImageListView.GroupInfo(text, TypeDict[text]);
         }

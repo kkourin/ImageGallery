@@ -92,11 +92,6 @@ namespace ImageGallery.Database
                 return null;
             }
 
-            if (img == null)
-            {
-                return null;
-            }
-
             try
             {
                 Image thumbnailImage = Helpers.CreateThumbnail(img, 150, 150);
@@ -113,14 +108,14 @@ namespace ImageGallery.Database
 
 
         // If extensions is empty, returns ALL. Note: only counts white listed files.
-        public static Dictionary<string, DateTime> GetAllFileInfo(Watcher watcher)
+        public static Dictionary<string, (DateTime, DateTime)> GetAllFileInfo(Watcher watcher)
         {
             var dir = watcher.Directory;
             return GetAllFileInfoInDirectory(watcher, dir);
         }
 
         // If extensions is empty, returns ALL. Note: only counts white listed files.
-        public static Dictionary<string, DateTime> GetAllFileInfoInDirectory(Watcher watcher, string dir)
+        public static Dictionary<string, (DateTime, DateTime)> GetAllFileInfoInDirectory(Watcher watcher, string dir)
         {
             if (!Directory.Exists(dir))
             {
@@ -128,7 +123,11 @@ namespace ImageGallery.Database
             }
             var files = from filename in Directory.EnumerateFiles(dir, "*", SearchOption.AllDirectories)
                         where watcher.WhitelistedFile(filename)
-                        select new KeyValuePair<string, DateTime>(filename, System.IO.File.GetLastWriteTimeUtc(filename));
+                        select new KeyValuePair<string, (DateTime, DateTime)>(
+                            filename,
+                            (System.IO.File.GetLastWriteTimeUtc(filename),
+                            System.IO.File.GetCreationTimeUtc(filename))
+                        );
             return files.ToDictionary(kv => kv.Key, kv => kv.Value);
         }
 

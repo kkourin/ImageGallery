@@ -53,15 +53,16 @@ namespace ImageGallery
                 return null;
             }
             File file = (File)key;
-            //return file.thumbnailImage;
 
             if (file.Thumbnail == null)
             {
                 try
                 {
-                    Icon icon = Helpers.ExtractAssociatedIcon(file.FullName);
-                    //Icon icon = System.Drawing.Icon.ExtractAssociatedIcon(file.FullName);
-                    return icon.ToBitmap();
+                    var task = Task.Run(() => Helpers.ExtractAssociatedIcon(file.FullName).ToBitmap());
+                    if (task.Wait(TimeSpan.FromSeconds(3)))
+                    {
+                        return task.Result;
+                    }
                 }
                 catch (ArgumentException)
                 {

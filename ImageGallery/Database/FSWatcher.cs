@@ -179,21 +179,25 @@ namespace ImageGallery.Database
                 if (fileEvent.Type == EventType.Deleted)
                 {
                     Console.WriteLine($"Performing delete on {fileEvent.FullPath}");
-                    _changedCache.Remove(fileEvent.FullPath,  CacheEntryRemovedReason.Removed);
+                    _changedCache.Remove(fileEvent.FullPath, CacheEntryRemovedReason.Removed);
                     ctx.DeleteFile(fileEvent.FullPath, watcher);
+                    fsWatcher.SendChangeOccurred();
                 }
                 else if (fileEvent.Type == EventType.Renamed)
                 {
                     HandleRenamed(fileEvent, ctx);
+                    fsWatcher.SendChangeOccurred();
                 }
                 else if (fileEvent.Type == EventType.Created)
                 {
                     HandleCreated(fileEvent, ctx);
+                    fsWatcher.SendChangeOccurred();
                 }
                 else if (fileEvent.Type == EventType.Changed)
                 {
                     HandleChanged(fileEvent, ctx);
-                } else if (fileEvent.Type == EventType.Error)
+                }
+                else if (fileEvent.Type == EventType.Error)
                 {
                     throw fileEvent.Error.GetException();
                 }
@@ -210,8 +214,6 @@ namespace ImageGallery.Database
             }
             else if (Directory.Exists(fileEvent.FullPath))
             {
-                //var files = ctx.FilesInDirectory(fileEvent.OldFullPath, watcher);
-                // TODO: this
                 ctx.RenameFilesInDirectory(fileEvent.OldFullPath, fileEvent.FullPath, watcher);
             }
         }
@@ -375,6 +377,10 @@ namespace ImageGallery.Database
             public int WatcherId { get; set; }
         }
 
+        public void SendChangeOccurred()
+        {
+            OnSyncOccurredEvent(new SyncOccurredEventArgs { Changed = true, WatcherId = Watcher.Id });
+        }
         protected virtual void OnSyncOccurredEvent(SyncOccurredEventArgs e)
         {
             SyncOccurred?.Invoke(this, e);

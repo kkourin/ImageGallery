@@ -26,6 +26,7 @@ namespace ImageGallery.Database.Models
 
         public DateTime? FileModifiedTime { get; set; }
         public DateTime? LastUseTime { get; set; }
+        public DateTime? LastChangeTime { get; set; }
         public byte[] Thumbnail { get; set; }
         [Required]
         public int TimesAccessed { get; set; }

@@ -11,9 +11,17 @@ using Cyotek.Windows.Forms;
 
 namespace ImageGallery
 {
+    using Database.Models;
     public partial class PopoutPreview : Form
     {
         private Image previewImage;
+        public FileInfoPanel FileInfoPanel
+        {
+            get
+            {
+                return fileInfoPanel;
+            }
+        }
         public Image PreviewImage
         {
             get
@@ -34,10 +42,8 @@ namespace ImageGallery
         {
             if (previewImage == null || poppedPreviewBox.Image == null)
             {
-                Console.WriteLine("image null");
                 return;
             }
-            Console.WriteLine($"{previewImage.Width}, {poppedPreviewBox.Width}, {previewImage.Height}, {poppedPreviewBox.Height}");
 
             if (previewImage.Width > poppedPreviewBox.Width || previewImage.Height > poppedPreviewBox.Height )
             {
@@ -45,7 +51,6 @@ namespace ImageGallery
                 return;
             }
             poppedPreviewBox.Zoom = 100;
-            Console.WriteLine("Not zooming");
         }
         public PopoutPreview()
         {
@@ -74,7 +79,6 @@ namespace ImageGallery
 
         private void PopoutPreview_Resize(object sender, EventArgs e)
         {
-            Console.WriteLine(sender.GetType().ToString());
             ZoomIfTooLarge();
         }
     }

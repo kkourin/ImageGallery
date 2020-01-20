@@ -104,7 +104,7 @@ namespace ImageGallery.Database
                 {
                     pack.Task.Wait();
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     // Pass... TODO: filter only useful expcetions
                 }
@@ -122,7 +122,7 @@ namespace ImageGallery.Database
             try
             {
                 pack.Task.Wait();
-            } catch (Exception e)
+            } catch (Exception)
             {
                 // Pass... TODO: filter only useful expcetions
             }

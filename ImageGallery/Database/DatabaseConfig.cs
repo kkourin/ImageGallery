@@ -12,7 +12,6 @@ namespace ImageGallery.Database
         public string DatabasePath { get; set; }
         public DatabaseConfig()
         {
-            Console.WriteLine("Getting");
             DatabasePath = ReadSetting("DatabasePath");
         }
 

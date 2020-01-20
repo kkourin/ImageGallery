@@ -33,6 +33,7 @@
             this.ilvThumbs = new Manina.Windows.Forms.ImageListView();
             this.GalleryRightClick = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.OpenButton = new System.Windows.Forms.ToolStripMenuItem();
+            this.openFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.previewBox = new System.Windows.Forms.PictureBox();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.statusStrip = new System.Windows.Forms.StatusStrip();
@@ -41,23 +42,20 @@
             this.searchTextBox = new System.Windows.Forms.ToolStripTextBox();
             this.RefreshButton = new System.Windows.Forms.ToolStripButton();
             this.sortButton = new System.Windows.Forms.ToolStripDropDownButton();
-            this.nameSort = new System.Windows.Forms.ToolStripMenuItem();
-            this.usedOrder = new System.Windows.Forms.ToolStripMenuItem();
-            this.createdSort = new System.Windows.Forms.ToolStripMenuItem();
-            this.timesUsedSort = new System.Windows.Forms.ToolStripMenuItem();
+            this.CreatedOrder = new System.Windows.Forms.ToolStripMenuItem();
+            this.NameOrder = new System.Windows.Forms.ToolStripMenuItem();
+            this.UsedOrder = new System.Windows.Forms.ToolStripMenuItem();
+            this.TimesUsedOrder = new System.Windows.Forms.ToolStripMenuItem();
             this.WatcherDropDown = new System.Windows.Forms.ToolStripDropDownButton();
             this.ShowAllButton = new System.Windows.Forms.ToolStripButton();
             this.PopoutPreviewButton = new System.Windows.Forms.ToolStripButton();
-            this.InfoPanel = new System.Windows.Forms.Panel();
-            this.LoadingLabel = new System.Windows.Forms.Label();
-            this.NameListLabel = new System.Windows.Forms.Label();
-            this.NameLabel = new System.Windows.Forms.Label();
             this.NameToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.MinimizedIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.TrayContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.TrayExitButton = new System.Windows.Forms.ToolStripMenuItem();
-            this.PathLabel = new System.Windows.Forms.Label();
-            this.PathListLabel = new System.Windows.Forms.Label();
+            this.fileInfoPanel = new ImageGallery.FileInfoPanel();
+            this.CopyFileButton = new System.Windows.Forms.ToolStripMenuItem();
+            this.CopyImageButton = new System.Windows.Forms.ToolStripMenuItem();
             this.GalleryRightClick.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.previewBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -66,7 +64,6 @@
             this.splitContainer1.SuspendLayout();
             this.statusStrip.SuspendLayout();
             this.toolStrip1.SuspendLayout();
-            this.InfoPanel.SuspendLayout();
             this.TrayContextMenu.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -88,21 +85,36 @@
             this.ilvThumbs.ItemDoubleClick += new Manina.Windows.Forms.ItemDoubleClickEventHandler(this.ilvThumbs_ItemDoubleClick);
             this.ilvThumbs.SelectionChanged += new System.EventHandler(this.ilvThumbs_SelectionChanged);
             this.ilvThumbs.Enter += new System.EventHandler(this.ilvThumbs_Enter);
+            this.ilvThumbs.MouseClick += new System.Windows.Forms.MouseEventHandler(this.ilvThumbs_MouseClick);
+            this.ilvThumbs.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ilvThumbs_MouseUp);
             // 
             // GalleryRightClick
             // 
             this.GalleryRightClick.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.OpenButton});
+            this.OpenButton,
+            this.openFolderToolStripMenuItem,
+            this.CopyFileButton,
+            this.CopyImageButton});
             this.GalleryRightClick.Name = "GalleryRightClick";
-            this.GalleryRightClick.Size = new System.Drawing.Size(147, 26);
+            this.GalleryRightClick.Size = new System.Drawing.Size(181, 114);
+            this.GalleryRightClick.Opening += new System.ComponentModel.CancelEventHandler(this.GalleryRightClick_Opening);
+            this.GalleryRightClick.Opened += new System.EventHandler(this.GalleryRightClick_Opened);
             // 
             // OpenButton
             // 
             this.OpenButton.Name = "OpenButton";
             this.OpenButton.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-            this.OpenButton.Size = new System.Drawing.Size(146, 22);
+            this.OpenButton.Size = new System.Drawing.Size(180, 22);
             this.OpenButton.Text = "Open";
             this.OpenButton.Click += new System.EventHandler(this.OpenButton_Click);
+            // 
+            // openFolderToolStripMenuItem
+            // 
+            this.openFolderToolStripMenuItem.Name = "openFolderToolStripMenuItem";
+            this.openFolderToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.L)));
+            this.openFolderToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.openFolderToolStripMenuItem.Text = "Open folder";
+            this.openFolderToolStripMenuItem.Click += new System.EventHandler(this.openFolderToolStripMenuItem_Click);
             // 
             // previewBox
             // 
@@ -111,7 +123,7 @@
             this.previewBox.Location = new System.Drawing.Point(0, 0);
             this.previewBox.MinimumSize = new System.Drawing.Size(150, 0);
             this.previewBox.Name = "previewBox";
-            this.previewBox.Size = new System.Drawing.Size(293, 482);
+            this.previewBox.Size = new System.Drawing.Size(293, 485);
             this.previewBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.previewBox.TabIndex = 2;
             this.previewBox.TabStop = false;
@@ -132,7 +144,7 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.previewBox);
-            this.splitContainer1.Panel2.Controls.Add(this.InfoPanel);
+            this.splitContainer1.Panel2.Controls.Add(this.fileInfoPanel);
             this.splitContainer1.Panel2MinSize = 100;
             this.splitContainer1.Size = new System.Drawing.Size(1084, 561);
             this.splitContainer1.SplitterDistance = 785;
@@ -180,65 +192,74 @@
             this.searchTextBox.Name = "searchTextBox";
             this.searchTextBox.Size = new System.Drawing.Size(250, 25);
             this.searchTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.searchTextBox_KeyDown);
+            this.searchTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.searchTextBox_KeyPress);
             this.searchTextBox.Click += new System.EventHandler(this.searchTextBox_Click);
             this.searchTextBox.TextChanged += new System.EventHandler(this.searchTextBox_TextChanged);
             // 
             // RefreshButton
             // 
-            this.RefreshButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.RefreshButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.RefreshButton.Image = ((System.Drawing.Image)(resources.GetObject("RefreshButton.Image")));
             this.RefreshButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.RefreshButton.Name = "RefreshButton";
-            this.RefreshButton.Size = new System.Drawing.Size(23, 22);
-            this.RefreshButton.Text = "RefreshButton";
+            this.RefreshButton.Size = new System.Drawing.Size(50, 22);
+            this.RefreshButton.Text = "Refresh";
             this.RefreshButton.Click += new System.EventHandler(this.RefreshButton_Click);
             // 
             // sortButton
             // 
+            this.sortButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.sortButton.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.nameSort,
-            this.usedOrder,
-            this.createdSort,
-            this.timesUsedSort});
+            this.CreatedOrder,
+            this.NameOrder,
+            this.UsedOrder,
+            this.TimesUsedOrder});
             this.sortButton.Image = ((System.Drawing.Image)(resources.GetObject("sortButton.Image")));
             this.sortButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.sortButton.Name = "sortButton";
-            this.sortButton.Size = new System.Drawing.Size(88, 22);
+            this.sortButton.Size = new System.Drawing.Size(72, 22);
             this.sortButton.Text = "Sort order";
             // 
-            // nameSort
+            // CreatedOrder
             // 
-            this.nameSort.Name = "nameSort";
-            this.nameSort.Size = new System.Drawing.Size(151, 22);
-            this.nameSort.Text = "Name";
+            this.CreatedOrder.Name = "CreatedOrder";
+            this.CreatedOrder.Size = new System.Drawing.Size(180, 22);
+            this.CreatedOrder.Tag = "DateChanged";
+            this.CreatedOrder.Text = "Date Modified";
+            this.CreatedOrder.Click += new System.EventHandler(this.CreatedOrder_Click);
             // 
-            // usedOrder
+            // NameOrder
             // 
-            this.usedOrder.Name = "usedOrder";
-            this.usedOrder.Size = new System.Drawing.Size(151, 22);
-            this.usedOrder.Text = "Date Last Used";
-            this.usedOrder.Click += new System.EventHandler(this.usedOrder_Click);
+            this.NameOrder.Name = "NameOrder";
+            this.NameOrder.Size = new System.Drawing.Size(180, 22);
+            this.NameOrder.Tag = "Name";
+            this.NameOrder.Text = "Name";
+            this.NameOrder.Click += new System.EventHandler(this.NameOrder_Click);
             // 
-            // createdSort
+            // UsedOrder
             // 
-            this.createdSort.Name = "createdSort";
-            this.createdSort.Size = new System.Drawing.Size(151, 22);
-            this.createdSort.Text = "Date Created";
+            this.UsedOrder.Name = "UsedOrder";
+            this.UsedOrder.Size = new System.Drawing.Size(180, 22);
+            this.UsedOrder.Tag = "DateAccessed";
+            this.UsedOrder.Text = "Date Last Used";
+            this.UsedOrder.Click += new System.EventHandler(this.usedOrder_Click);
             // 
-            // timesUsedSort
+            // TimesUsedOrder
             // 
-            this.timesUsedSort.Name = "timesUsedSort";
-            this.timesUsedSort.Size = new System.Drawing.Size(151, 22);
-            this.timesUsedSort.Text = "Times Used";
+            this.TimesUsedOrder.Name = "TimesUsedOrder";
+            this.TimesUsedOrder.Size = new System.Drawing.Size(180, 22);
+            this.TimesUsedOrder.Tag = "TimesAccessed";
+            this.TimesUsedOrder.Text = "Times Used";
+            this.TimesUsedOrder.Click += new System.EventHandler(this.TimesUsedOrder_Click);
             // 
             // WatcherDropDown
             // 
-            this.WatcherDropDown.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.WatcherDropDown.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.WatcherDropDown.Image = ((System.Drawing.Image)(resources.GetObject("WatcherDropDown.Image")));
             this.WatcherDropDown.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.WatcherDropDown.Name = "WatcherDropDown";
-            this.WatcherDropDown.Size = new System.Drawing.Size(29, 22);
-            this.WatcherDropDown.Text = "toolStripDropDownButton1";
+            this.WatcherDropDown.Size = new System.Drawing.Size(69, 22);
+            this.WatcherDropDown.Text = "Watchers";
             // 
             // ShowAllButton
             // 
@@ -263,49 +284,6 @@
             this.PopoutPreviewButton.CheckedChanged += new System.EventHandler(this.PopoutPreviewButton_CheckedChanged);
             this.PopoutPreviewButton.Click += new System.EventHandler(this.PopoutPreviewButton_Click);
             // 
-            // InfoPanel
-            // 
-            this.InfoPanel.Controls.Add(this.PathListLabel);
-            this.InfoPanel.Controls.Add(this.PathLabel);
-            this.InfoPanel.Controls.Add(this.LoadingLabel);
-            this.InfoPanel.Controls.Add(this.NameListLabel);
-            this.InfoPanel.Controls.Add(this.NameLabel);
-            this.InfoPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.InfoPanel.Location = new System.Drawing.Point(0, 482);
-            this.InfoPanel.Name = "InfoPanel";
-            this.InfoPanel.Size = new System.Drawing.Size(293, 77);
-            this.InfoPanel.TabIndex = 3;
-            // 
-            // LoadingLabel
-            // 
-            this.LoadingLabel.AutoSize = true;
-            this.LoadingLabel.Location = new System.Drawing.Point(3, 56);
-            this.LoadingLabel.Name = "LoadingLabel";
-            this.LoadingLabel.Size = new System.Drawing.Size(94, 13);
-            this.LoadingLabel.TabIndex = 2;
-            this.LoadingLabel.Text = "Loading preview...";
-            this.LoadingLabel.Visible = false;
-            // 
-            // NameListLabel
-            // 
-            this.NameListLabel.AutoSize = true;
-            this.NameListLabel.Location = new System.Drawing.Point(4, 10);
-            this.NameListLabel.Name = "NameListLabel";
-            this.NameListLabel.Size = new System.Drawing.Size(38, 13);
-            this.NameListLabel.TabIndex = 0;
-            this.NameListLabel.Text = "Name:";
-            // 
-            // NameLabel
-            // 
-            this.NameLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.NameLabel.AutoEllipsis = true;
-            this.NameLabel.Location = new System.Drawing.Point(42, 10);
-            this.NameLabel.Name = "NameLabel";
-            this.NameLabel.Size = new System.Drawing.Size(240, 20);
-            this.NameLabel.TabIndex = 0;
-            this.NameLabel.Text = "No file selected.";
-            // 
             // MinimizedIcon
             // 
             this.MinimizedIcon.ContextMenuStrip = this.TrayContextMenu;
@@ -318,34 +296,39 @@
             this.TrayContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.TrayExitButton});
             this.TrayContextMenu.Name = "TrayContextMenu";
-            this.TrayContextMenu.Size = new System.Drawing.Size(94, 26);
+            this.TrayContextMenu.Size = new System.Drawing.Size(93, 26);
             // 
             // TrayExitButton
             // 
             this.TrayExitButton.Name = "TrayExitButton";
-            this.TrayExitButton.Size = new System.Drawing.Size(93, 22);
+            this.TrayExitButton.Size = new System.Drawing.Size(92, 22);
             this.TrayExitButton.Text = "Exit";
             this.TrayExitButton.Click += new System.EventHandler(this.TrayExitButton_Click);
             // 
-            // PathLabel
+            // fileInfoPanel
             // 
-            this.PathLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.PathLabel.AutoEllipsis = true;
-            this.PathLabel.Location = new System.Drawing.Point(42, 25);
-            this.PathLabel.Name = "PathLabel";
-            this.PathLabel.Size = new System.Drawing.Size(240, 29);
-            this.PathLabel.TabIndex = 3;
+            this.fileInfoPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.fileInfoPanel.File = null;
+            this.fileInfoPanel.Loading = false;
+            this.fileInfoPanel.Location = new System.Drawing.Point(0, 485);
+            this.fileInfoPanel.Name = "fileInfoPanel";
+            this.fileInfoPanel.Padding = new System.Windows.Forms.Padding(3);
+            this.fileInfoPanel.Size = new System.Drawing.Size(293, 74);
+            this.fileInfoPanel.TabIndex = 3;
             // 
-            // PathListLabel
+            // CopyFileButton
             // 
-            this.PathListLabel.AutoSize = true;
-            this.PathListLabel.Location = new System.Drawing.Point(10, 25);
-            this.PathListLabel.Margin = new System.Windows.Forms.Padding(0);
-            this.PathListLabel.Name = "PathListLabel";
-            this.PathListLabel.Size = new System.Drawing.Size(32, 13);
-            this.PathListLabel.TabIndex = 4;
-            this.PathListLabel.Text = "Path:";
+            this.CopyFileButton.Name = "CopyFileButton";
+            this.CopyFileButton.Size = new System.Drawing.Size(180, 22);
+            this.CopyFileButton.Text = "Copy file";
+            this.CopyFileButton.Click += new System.EventHandler(this.CopyFileButton_Click);
+            // 
+            // CopyImageButton
+            // 
+            this.CopyImageButton.Name = "CopyImageButton";
+            this.CopyImageButton.Size = new System.Drawing.Size(180, 22);
+            this.CopyImageButton.Text = "Copy as image";
+            this.CopyImageButton.Click += new System.EventHandler(this.CopyImageButton_Click);
             // 
             // MainForm
             // 
@@ -372,8 +355,6 @@
             this.statusStrip.PerformLayout();
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
-            this.InfoPanel.ResumeLayout(false);
-            this.InfoPanel.PerformLayout();
             this.TrayContextMenu.ResumeLayout(false);
             this.ResumeLayout(false);
 
@@ -390,15 +371,11 @@
         private System.Windows.Forms.ToolStripButton RefreshButton;
         private System.Windows.Forms.ToolStripTextBox searchTextBox;
         private System.Windows.Forms.ToolStripDropDownButton sortButton;
-        private System.Windows.Forms.ToolStripMenuItem nameSort;
-        private System.Windows.Forms.ToolStripMenuItem usedOrder;
-        private System.Windows.Forms.ToolStripMenuItem createdSort;
-        private System.Windows.Forms.ToolStripMenuItem timesUsedSort;
-        private System.Windows.Forms.Panel InfoPanel;
-        private System.Windows.Forms.Label NameListLabel;
-        private System.Windows.Forms.Label NameLabel;
+        private System.Windows.Forms.ToolStripMenuItem NameOrder;
+        private System.Windows.Forms.ToolStripMenuItem UsedOrder;
+        private System.Windows.Forms.ToolStripMenuItem CreatedOrder;
+        private System.Windows.Forms.ToolStripMenuItem TimesUsedOrder;
         private System.Windows.Forms.ToolTip NameToolTip;
-        private System.Windows.Forms.Label LoadingLabel;
         private System.Windows.Forms.ToolStripDropDownButton WatcherDropDown;
         private System.Windows.Forms.ToolStripButton ShowAllButton;
         private System.Windows.Forms.ToolStripButton PopoutPreviewButton;
@@ -407,8 +384,10 @@
         private System.Windows.Forms.NotifyIcon MinimizedIcon;
         private System.Windows.Forms.ContextMenuStrip TrayContextMenu;
         private System.Windows.Forms.ToolStripMenuItem TrayExitButton;
-        private System.Windows.Forms.Label PathListLabel;
-        private System.Windows.Forms.Label PathLabel;
+        private System.Windows.Forms.ToolStripMenuItem openFolderToolStripMenuItem;
+        private FileInfoPanel fileInfoPanel;
+        private System.Windows.Forms.ToolStripMenuItem CopyFileButton;
+        private System.Windows.Forms.ToolStripMenuItem CopyImageButton;
     }
 }
 

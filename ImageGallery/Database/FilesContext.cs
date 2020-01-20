@@ -15,6 +15,14 @@ namespace ImageGallery.Database
 
         public DbSet<Watcher> Watchers { get; set; }
 
+        public enum SortColumn
+        {
+            DateChanged,
+            Name,
+            DateAccessed,
+            TimesAccessed
+        }
+
         public static DatabaseConfig Config { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -88,6 +96,8 @@ namespace ImageGallery.Database
 
             modelBuilder.Entity<File>()
                .HasIndex(b => b.FileModifiedTime);
+            modelBuilder.Entity<File>()
+               .HasIndex(b => b.LastChangeTime);
 
             modelBuilder.Entity<File>()
                 .HasIndex(b => b.LastUseTime);
@@ -102,19 +112,36 @@ namespace ImageGallery.Database
                     s => Watcher.ExtensionStringToHash(s));
         }
         
-        public IQueryable<File> Search(string Query, HashSet<int> watchers)
+        public IQueryable<File> Search(string Query, HashSet<int> watchers, SortColumn order)
         {
-            return from file in
-                       Files.FromSqlRaw(
-                        "SELECT *" +
-                        "FROM \"Files\" WHERE \"Id\" IN (" +
-                            "SELECT RowID from FileFTS WHERE FileFTS MATCH {0}" +
-                        ")"
-                        , Query).AsNoTracking()
-                   where watchers.Contains(file.WatcherId)
-                   orderby file.FileModifiedTime descending
-                   select file;
+            var result = from file in
+                      Files.FromSqlRaw(
+                       "SELECT *" +
+                       "FROM \"Files\" WHERE \"Id\" IN (" +
+                           "SELECT RowID from FileFTS WHERE FileFTS MATCH {0}" +
+                       ")"
+                       , Query).AsNoTracking()
+                         where watchers.Contains(file.WatcherId)
+                         select file;
+            return OrderBySort(result, order);
         }
+        public static IQueryable<File> OrderBySort(IQueryable<File> files, SortColumn order)
+        {
+            switch (order)
+            {
+                case SortColumn.Name:
+                    return files.OrderBy(t => t.Name);
+                case SortColumn.DateAccessed:
+                    return files.OrderByDescending(t => t.LastUseTime);
+                case SortColumn.TimesAccessed:
+                    return files.OrderByDescending(t => t.TimesAccessed);
+                case SortColumn.DateChanged:
+                    return files.OrderByDescending(t => t.LastChangeTime);
+                default:
+                    return files;
+            }
+        }
+
         public static string MakeQuery(string textInput)
         {
             var terms = from term in textInput.Split()
@@ -122,15 +149,21 @@ namespace ImageGallery.Database
             return String.Join(" AND ", terms);
         }
 
-
-        public void RecordUse(File file)
+        public void RecordUse(IEnumerable<File> files)
         {
-            var found = Files.Find(file.Id);
-            if (found != null)
+            foreach(var file in files)
             {
-                found.RecordUse();
+                var found = Files.Find(file.Id);
+                if (found != null)
+                {
+                    found.RecordUse();
+                }
             }
             SaveChanges();
+        }
+        public void RecordUse(File file)
+        {
+            RecordUse(new List<File> { file });
         }
         public IEnumerable<File> FilesInDirectory(string directory, Watcher watcher)
         {
@@ -206,7 +239,6 @@ namespace ImageGallery.Database
                 file.FullName = newInfo.FullName;
                 file.Directory = newInfo.DirectoryName;
                 file.Directory_fts = DBHelpers.TokenizeDirectory(newInfo, watcher);
-                Console.WriteLine(newFullName);
             }
             SaveChanges();
         }
@@ -235,6 +267,7 @@ namespace ImageGallery.Database
                 Name = fileInfo.Name,
                 FileCreatedTime = fileInfo.CreationTimeUtc,
                 FileModifiedTime = fileInfo.LastWriteTimeUtc,
+                LastChangeTime = Helpers.LastChangeTime(fileInfo),
                 Extension = fileInfo.Extension,
                 Directory_fts = DBHelpers.TokenizeDirectory(fileInfo, watcher),
                 Name_fts = fileInfo.Name,
@@ -271,6 +304,7 @@ namespace ImageGallery.Database
         {
             file.CreatedTime = fileInfo.CreationTimeUtc;
             file.FileModifiedTime = fileInfo.LastWriteTimeUtc;
+            file.LastChangeTime = Helpers.LastChangeTime(fileInfo);
             file.Thumbnail = DBHelpers.GetThumbnail(fileInfo); // TODO: get new thumbnail
             SaveChanges();
         }
@@ -297,14 +331,17 @@ namespace ImageGallery.Database
             Files.RemoveRange(toRemove);
 
             // Update updated files.
+            // Tuples returned are of the form (Modified Time, Created Time)
             var toUpdate = from file in GetAllFilesInWatcher(watcher).ToList()
-                           where filesInDir.ContainsKey(file.FullName) && !filesInDir[file.FullName].Equals(file.FileModifiedTime)
+                           where filesInDir.ContainsKey(file.FullName) &&
+                           (!filesInDir[file.FullName].Item1.Equals(file.FileModifiedTime) || !filesInDir[file.FullName].Item2.Equals(file.FileCreatedTime))
                            select file;
 
             changed |= toUpdate.Any();
             foreach (var file in toUpdate)
             {
-                file.FileModifiedTime = filesInDir[file.FullName];
+                file.FileModifiedTime = filesInDir[file.FullName].Item1;
+                file.FileCreatedTime = filesInDir[file.FullName].Item2;
                 file.Thumbnail = DBHelpers.GetThumbnail(new FileInfo(file.FullName));
             }
 
@@ -336,9 +373,10 @@ namespace ImageGallery.Database
                 var fileInfo = new FileInfo(filename);
                 if (files.Any())
                 {
-                    if (!(fileInfo.Exists && fileInfo.LastWriteTimeUtc == files.First().FileModifiedTime))
+                    var file = files.First();
+                    if (!(fileInfo.Exists && fileInfo.LastWriteTimeUtc == file.FileModifiedTime && fileInfo.CreationTimeUtc == file.CreatedTime))
                     {
-                        UpdateFileContents(files.First(), fileInfo, watcher);
+                        UpdateFileContents(file, fileInfo, watcher);
                     }
                     continue;
                 }

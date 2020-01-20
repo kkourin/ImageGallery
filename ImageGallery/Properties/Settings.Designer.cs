@@ -166,5 +166,17 @@ namespace ImageGallery.Properties {
                 this["PopoutHeight"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int SortColumn {
+            get {
+                return ((int)(this["SortColumn"]));
+            }
+            set {
+                this["SortColumn"] = value;
+            }
+        }
     }
 }
