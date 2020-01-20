@@ -38,6 +38,8 @@ namespace ImageGallery
         CancellationTokenSource previewCts = new CancellationTokenSource();
         CancellationTokenSource searchCts = new CancellationTokenSource();
         private ToolStripMenuItem ManageWatchersButton;
+        private const long maxPreviewSize = 15*1024*1024;
+        private const long maxClipboardSize = 30*1024*1024;
 
         static MainForm()
         {
@@ -453,14 +455,25 @@ namespace ImageGallery
                 {
                     return;
                 }
-                Image image;
-                try
-                {
-                    image = Helpers.LoadImage(new FileInfo(file.FullName));
-                } catch (ArgumentException)
+                // Don't load full preview if it's not an image file.
+                if (!Helpers.IsImageFile(file.Name))
                 {
                     this.Invoke((MethodInvoker)delegate
                     {
+                        SetInfoPanelLoading(false);
+                    });
+                    return;
+                }
+
+                Image image;
+                try
+                {
+                    image = Helpers.LoadImage(new FileInfo(file.FullName), maxPreviewSize);
+                } catch (ArgumentException e)
+                {
+                    this.Invoke((MethodInvoker)delegate
+                    {
+                        this.infoLabel.Text = $"Could not show preview. {e.Message}";
                         SetInfoPanelLoading(false);
                     });
                     return;
@@ -519,10 +532,10 @@ namespace ImageGallery
                 Image image;
                 try
                 {
-                    image = Helpers.LoadImage(fileInfo);
+                    image = Helpers.LoadImage(fileInfo, maxClipboardSize);
                 } catch (ArgumentException e)
                 {
-                    infoLabel.Text = e.Message;
+                    infoLabel.Text = $"Could not copy image. {e.Message}";
                     return;
                 }
                 if (image == null)
@@ -607,23 +620,8 @@ namespace ImageGallery
             {
                 popoutPreview.PreviewImage = previewImage;
             }
-            popoutPreview.Show();
-            popoutPreview.Activate();
-            Activate();
+            popoutPreview.Show(this);
         }
-
-        private void toolStripButton1_Click(object sender, EventArgs e)
-        {
-            //GC.Collect();
-            //ilvThumbs.View = Manina.Windows.Forms.View.Details;
-            foreach (var f in ilvThumbs.SelectedItems)
-            {
-                //Console.WriteLine(f.Text);
-            }
-            ShowPopoutPreview();
-        }
-
-
 
         private void watchersButton_Click_1(object sender, EventArgs e)
         {

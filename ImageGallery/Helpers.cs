@@ -61,12 +61,21 @@ namespace ImageGallery
             return CheckExtension(filePath, ImageFileExtensions);
         }
 
-        // Throws argument exception.
-        public static Image LoadImage(FileInfo file)
+        // Throws argument exception. Warning: this does not check if the file has a image file extension by default.
+        public static Image LoadImage(FileInfo file, long fileSizeLimit, bool checkExtension = false)
         {
+            Console.WriteLine($"Loading image {file.FullName}");
+            if (checkExtension && !IsImageFile(file.Name))
+            {
+                throw new ArgumentException($"File is not an image: {file.FullName}");
+            }
             if (!file.Exists)
             {
                 throw new ArgumentException($"File does not exist: {file.FullName}");
+            }
+            if (file.Length > fileSizeLimit)
+            {
+                throw new ArgumentException($"File is too large: {file.FullName}");
             }
 
             // http://stackoverflow.com/questions/788335/why-does-image-fromfile-keep-a-file-handle-open-sometimes

@@ -64,7 +64,7 @@ namespace ImageGallery.Database
             }
             return false;
         }
-        public static byte[] GetThumbnail(FileInfo file)
+        public static byte[] GetThumbnail(FileInfo file, long fileSizeLimit = 100000000)
         {
             if (!Helpers.IsImageFile(file.Name))
             {
@@ -77,7 +77,7 @@ namespace ImageGallery.Database
             Image img;
             try
             {
-                img = Helpers.LoadImage(file);
+                img = Helpers.LoadImage(file, fileSizeLimit);
 
             }
             catch (ArgumentException)

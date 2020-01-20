@@ -34,6 +34,8 @@
             this.GalleryRightClick = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.OpenButton = new System.Windows.Forms.ToolStripMenuItem();
             this.openFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.CopyFileButton = new System.Windows.Forms.ToolStripMenuItem();
+            this.CopyImageButton = new System.Windows.Forms.ToolStripMenuItem();
             this.previewBox = new System.Windows.Forms.PictureBox();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.statusStrip = new System.Windows.Forms.StatusStrip();
@@ -49,13 +51,11 @@
             this.WatcherDropDown = new System.Windows.Forms.ToolStripDropDownButton();
             this.ShowAllButton = new System.Windows.Forms.ToolStripButton();
             this.PopoutPreviewButton = new System.Windows.Forms.ToolStripButton();
+            this.fileInfoPanel = new ImageGallery.FileInfoPanel();
             this.NameToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.MinimizedIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.TrayContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.TrayExitButton = new System.Windows.Forms.ToolStripMenuItem();
-            this.fileInfoPanel = new ImageGallery.FileInfoPanel();
-            this.CopyFileButton = new System.Windows.Forms.ToolStripMenuItem();
-            this.CopyImageButton = new System.Windows.Forms.ToolStripMenuItem();
             this.GalleryRightClick.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.previewBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -96,7 +96,7 @@
             this.CopyFileButton,
             this.CopyImageButton});
             this.GalleryRightClick.Name = "GalleryRightClick";
-            this.GalleryRightClick.Size = new System.Drawing.Size(181, 114);
+            this.GalleryRightClick.Size = new System.Drawing.Size(178, 92);
             this.GalleryRightClick.Opening += new System.ComponentModel.CancelEventHandler(this.GalleryRightClick_Opening);
             this.GalleryRightClick.Opened += new System.EventHandler(this.GalleryRightClick_Opened);
             // 
@@ -104,7 +104,7 @@
             // 
             this.OpenButton.Name = "OpenButton";
             this.OpenButton.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-            this.OpenButton.Size = new System.Drawing.Size(180, 22);
+            this.OpenButton.Size = new System.Drawing.Size(177, 22);
             this.OpenButton.Text = "Open";
             this.OpenButton.Click += new System.EventHandler(this.OpenButton_Click);
             // 
@@ -112,9 +112,23 @@
             // 
             this.openFolderToolStripMenuItem.Name = "openFolderToolStripMenuItem";
             this.openFolderToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.L)));
-            this.openFolderToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.openFolderToolStripMenuItem.Size = new System.Drawing.Size(177, 22);
             this.openFolderToolStripMenuItem.Text = "Open folder";
             this.openFolderToolStripMenuItem.Click += new System.EventHandler(this.openFolderToolStripMenuItem_Click);
+            // 
+            // CopyFileButton
+            // 
+            this.CopyFileButton.Name = "CopyFileButton";
+            this.CopyFileButton.Size = new System.Drawing.Size(177, 22);
+            this.CopyFileButton.Text = "Copy file";
+            this.CopyFileButton.Click += new System.EventHandler(this.CopyFileButton_Click);
+            // 
+            // CopyImageButton
+            // 
+            this.CopyImageButton.Name = "CopyImageButton";
+            this.CopyImageButton.Size = new System.Drawing.Size(177, 22);
+            this.CopyImageButton.Text = "Copy as image";
+            this.CopyImageButton.Click += new System.EventHandler(this.CopyImageButton_Click);
             // 
             // previewBox
             // 
@@ -164,8 +178,10 @@
             // infoLabel
             // 
             this.infoLabel.Name = "infoLabel";
-            this.infoLabel.Size = new System.Drawing.Size(42, 17);
+            this.infoLabel.Size = new System.Drawing.Size(737, 17);
+            this.infoLabel.Spring = true;
             this.infoLabel.Text = "Ready.";
+            this.infoLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // toolStrip1
             // 
@@ -223,7 +239,7 @@
             // CreatedOrder
             // 
             this.CreatedOrder.Name = "CreatedOrder";
-            this.CreatedOrder.Size = new System.Drawing.Size(180, 22);
+            this.CreatedOrder.Size = new System.Drawing.Size(151, 22);
             this.CreatedOrder.Tag = "DateChanged";
             this.CreatedOrder.Text = "Date Modified";
             this.CreatedOrder.Click += new System.EventHandler(this.CreatedOrder_Click);
@@ -231,7 +247,7 @@
             // NameOrder
             // 
             this.NameOrder.Name = "NameOrder";
-            this.NameOrder.Size = new System.Drawing.Size(180, 22);
+            this.NameOrder.Size = new System.Drawing.Size(151, 22);
             this.NameOrder.Tag = "Name";
             this.NameOrder.Text = "Name";
             this.NameOrder.Click += new System.EventHandler(this.NameOrder_Click);
@@ -239,7 +255,7 @@
             // UsedOrder
             // 
             this.UsedOrder.Name = "UsedOrder";
-            this.UsedOrder.Size = new System.Drawing.Size(180, 22);
+            this.UsedOrder.Size = new System.Drawing.Size(151, 22);
             this.UsedOrder.Tag = "DateAccessed";
             this.UsedOrder.Text = "Date Last Used";
             this.UsedOrder.Click += new System.EventHandler(this.usedOrder_Click);
@@ -247,7 +263,7 @@
             // TimesUsedOrder
             // 
             this.TimesUsedOrder.Name = "TimesUsedOrder";
-            this.TimesUsedOrder.Size = new System.Drawing.Size(180, 22);
+            this.TimesUsedOrder.Size = new System.Drawing.Size(151, 22);
             this.TimesUsedOrder.Tag = "TimesAccessed";
             this.TimesUsedOrder.Text = "Times Used";
             this.TimesUsedOrder.Click += new System.EventHandler(this.TimesUsedOrder_Click);
@@ -284,6 +300,17 @@
             this.PopoutPreviewButton.CheckedChanged += new System.EventHandler(this.PopoutPreviewButton_CheckedChanged);
             this.PopoutPreviewButton.Click += new System.EventHandler(this.PopoutPreviewButton_Click);
             // 
+            // fileInfoPanel
+            // 
+            this.fileInfoPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.fileInfoPanel.File = null;
+            this.fileInfoPanel.Loading = false;
+            this.fileInfoPanel.Location = new System.Drawing.Point(0, 485);
+            this.fileInfoPanel.Name = "fileInfoPanel";
+            this.fileInfoPanel.Padding = new System.Windows.Forms.Padding(3);
+            this.fileInfoPanel.Size = new System.Drawing.Size(293, 74);
+            this.fileInfoPanel.TabIndex = 3;
+            // 
             // MinimizedIcon
             // 
             this.MinimizedIcon.ContextMenuStrip = this.TrayContextMenu;
@@ -296,39 +323,14 @@
             this.TrayContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.TrayExitButton});
             this.TrayContextMenu.Name = "TrayContextMenu";
-            this.TrayContextMenu.Size = new System.Drawing.Size(93, 26);
+            this.TrayContextMenu.Size = new System.Drawing.Size(94, 26);
             // 
             // TrayExitButton
             // 
             this.TrayExitButton.Name = "TrayExitButton";
-            this.TrayExitButton.Size = new System.Drawing.Size(92, 22);
+            this.TrayExitButton.Size = new System.Drawing.Size(93, 22);
             this.TrayExitButton.Text = "Exit";
             this.TrayExitButton.Click += new System.EventHandler(this.TrayExitButton_Click);
-            // 
-            // fileInfoPanel
-            // 
-            this.fileInfoPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.fileInfoPanel.File = null;
-            this.fileInfoPanel.Loading = false;
-            this.fileInfoPanel.Location = new System.Drawing.Point(0, 485);
-            this.fileInfoPanel.Name = "fileInfoPanel";
-            this.fileInfoPanel.Padding = new System.Windows.Forms.Padding(3);
-            this.fileInfoPanel.Size = new System.Drawing.Size(293, 74);
-            this.fileInfoPanel.TabIndex = 3;
-            // 
-            // CopyFileButton
-            // 
-            this.CopyFileButton.Name = "CopyFileButton";
-            this.CopyFileButton.Size = new System.Drawing.Size(180, 22);
-            this.CopyFileButton.Text = "Copy file";
-            this.CopyFileButton.Click += new System.EventHandler(this.CopyFileButton_Click);
-            // 
-            // CopyImageButton
-            // 
-            this.CopyImageButton.Name = "CopyImageButton";
-            this.CopyImageButton.Size = new System.Drawing.Size(180, 22);
-            this.CopyImageButton.Text = "Copy as image";
-            this.CopyImageButton.Click += new System.EventHandler(this.CopyImageButton_Click);
             // 
             // MainForm
             // 

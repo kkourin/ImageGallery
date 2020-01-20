@@ -15,6 +15,11 @@ namespace ImageGallery
     public partial class PopoutPreview : Form
     {
         private Image previewImage;
+
+        protected override bool ShowWithoutActivation
+        {
+            get { return true; }
+        }
         public FileInfoPanel FileInfoPanel
         {
             get

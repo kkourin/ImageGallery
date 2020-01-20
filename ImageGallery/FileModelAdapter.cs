@@ -14,6 +14,7 @@ namespace ImageGallery
     using Database.Models;
     class FileModelAdapter : ImageListView.ImageListViewItemAdaptor
     {
+        private const int ThumbnailLoadTimeout = 4;
         private static readonly ImageConverter _imageConverter;
         string ColumnGroup { get; set; }
         static FileModelAdapter()
@@ -30,9 +31,7 @@ namespace ImageGallery
 
         public override Utility.Tuple<ColumnType, string, object>[] GetDetails(object key)
         {
-            File file = (File)key;
             List<Utility.Tuple<ColumnType, string, object>> details = new List<Utility.Tuple<ColumnType, string, object>>();
-            //details.Add(new Utility.Tuple<ColumnType, string, object>(ColumnType.Custom, "columnGroup", ColumnGroup));
             return details.ToArray();
         }
 
@@ -59,10 +58,11 @@ namespace ImageGallery
                 try
                 {
                     var task = Task.Run(() => Helpers.ExtractAssociatedIcon(file.FullName).ToBitmap());
-                    if (task.Wait(TimeSpan.FromSeconds(3)))
+                    if (task.Wait(TimeSpan.FromSeconds(ThumbnailLoadTimeout)))
                     {
                         return task.Result;
                     }
+                    // TODO: add fallback icons instead of returning null
                 }
                 catch (ArgumentException)
                 {
