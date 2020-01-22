@@ -411,10 +411,12 @@ namespace ImageGallery
             splitContainer1.Panel2Collapsed = false;
             RefreshPreviews();
         }
-        void SetInfoPanelFile(File file)
+
+
+        void SetInfoPanel(ImageListView.ImageListViewSelectedItemCollection items)
         {
-            fileInfoPanel.File = file;
-            popoutPreview.FileInfoPanel.File = file;
+            fileInfoPanel.Items = items;
+            popoutPreview.FileInfoPanel.Items = items;
         }
 
         void SetInfoPanelLoading(bool loading)
@@ -426,15 +428,17 @@ namespace ImageGallery
         private void ilvThumbs_SelectionChanged(object sender, EventArgs e)
         {
             var numSelected = ilvThumbs.SelectedItems.Count;
+            SetInfoPanel(ilvThumbs.SelectedItems);
+
             if (numSelected != 1)
             {
-                SetInfoPanelFile(null);
-                this.NameToolTip.Active = false;
+                previewImage = null;
+                RefreshPreviews();
                 return;
             }
             Image thumbnail = ilvThumbs.SelectedItems[0].ThumbnailImage;
             File file = (File)ilvThumbs.SelectedItems[0].VirtualItemKey;
-            SetInfoPanelFile(file);
+            //SetInfoPanelFile(file);
             previewCts.Cancel();
             previewCts = new CancellationTokenSource();
             SetPreviewImage(thumbnail, file, previewCts.Token);
@@ -443,9 +447,21 @@ namespace ImageGallery
 
         private Task SetPreviewImage(Image thumbnail, File file, CancellationToken token)
         {
+            Console.WriteLine(thumbnail == null);
             return Task.Run(() =>
             {
-                previewImage = thumbnail;
+                if (thumbnail != null)
+                {
+                    previewImage = thumbnail;
+                }
+                else
+                {
+                    previewImage = FileModelAdapter.getThumbnailFromFile(file);
+                }
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
                 this.Invoke((MethodInvoker)delegate
                 {
                     RefreshPreviews();
@@ -591,6 +607,8 @@ namespace ImageGallery
         {
             if (previewImage == null)
             {
+                previewBox.Image = null;
+                popoutPreview.PreviewImage = null;
                 return;
             }
             if (previewImage.Width > previewBox.Width || previewImage.Height > previewBox.Height)

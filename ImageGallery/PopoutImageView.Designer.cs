@@ -48,7 +48,6 @@
             // fileInfoPanel
             // 
             this.fileInfoPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.fileInfoPanel.File = null;
             this.fileInfoPanel.Loading = false;
             this.fileInfoPanel.Location = new System.Drawing.Point(0, 385);
             this.fileInfoPanel.Name = "fileInfoPanel";

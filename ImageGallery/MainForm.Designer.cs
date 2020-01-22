@@ -178,7 +178,7 @@
             // infoLabel
             // 
             this.infoLabel.Name = "infoLabel";
-            this.infoLabel.Size = new System.Drawing.Size(737, 17);
+            this.infoLabel.Size = new System.Drawing.Size(768, 17);
             this.infoLabel.Spring = true;
             this.infoLabel.Text = "Ready.";
             this.infoLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -303,13 +303,14 @@
             // fileInfoPanel
             // 
             this.fileInfoPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.fileInfoPanel.File = null;
+            this.fileInfoPanel.Items = null;
             this.fileInfoPanel.Loading = false;
             this.fileInfoPanel.Location = new System.Drawing.Point(0, 485);
             this.fileInfoPanel.Name = "fileInfoPanel";
             this.fileInfoPanel.Padding = new System.Windows.Forms.Padding(3);
             this.fileInfoPanel.Size = new System.Drawing.Size(293, 74);
             this.fileInfoPanel.TabIndex = 3;
+            this.fileInfoPanel.TabStop = false;
             // 
             // MinimizedIcon
             // 

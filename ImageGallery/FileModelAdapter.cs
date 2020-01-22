@@ -45,14 +45,9 @@ namespace ImageGallery
             return file.FullName;
         }
 
-        public override Image GetThumbnail(object key, Size size, UseEmbeddedThumbnails useEmbeddedThumbnails, bool useExifOrientation)
+        // TODO: factor this out of filemodeladaptor
+        public static Image getThumbnailFromFile(File file)
         {
-            if (disposed)
-            {
-                return null;
-            }
-            File file = (File)key;
-
             if (file.Thumbnail == null)
             {
                 try
@@ -76,13 +71,24 @@ namespace ImageGallery
             try
             {
                 return MakeImageFromJpegBlob(file.Thumbnail);
-            } catch (NotSupportedException)
+            }
+            catch (NotSupportedException)
             {
                 return null;
             }
         }
+        public override Image GetThumbnail(object key, Size size, UseEmbeddedThumbnails useEmbeddedThumbnails, bool useExifOrientation)
+        {
+            if (disposed)
+            {
+                return null;
+            }
+            File file = (File)key;
 
-        private Image MakeImageFromJpegBlob(byte[] blob)
+            return getThumbnailFromFile(file);
+        }
+
+        private static Image MakeImageFromJpegBlob(byte[] blob)
         {
             return (Bitmap)_imageConverter.ConvertFrom(blob);
         }
