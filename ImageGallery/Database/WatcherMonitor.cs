@@ -39,16 +39,25 @@ namespace ImageGallery.Database
 
         private void HandleFailedWatch(Task t, object o)
         {
+
             FSWatcherTaskPack pack = (FSWatcherTaskPack)o;
             pack.Failures += 1;
             pack.LastError = t.Exception.ToString();
             Console.WriteLine($"Failed. Watcher has had {pack.Failures} failure(s). Got exception: {t.Exception}");
+            if (!watchers.ContainsKey(pack.Watcher.Id))
+            {
+                return;
+            }
             Console.WriteLine("Restarting.");
             Thread.Sleep(WaitInterval);
             Console.WriteLine("Wait finished. Restarting watcher.");
             FSWatcher fsWatcher = new FSWatcher(pack.Watcher);
             pack.FSWatcher = fsWatcher;
-
+            if (!watchers.ContainsKey(pack.Watcher.Id))
+            {
+                return;
+            }
+            // TODO: there is a still a race condition here... eventually use a disable flag on the watcher model.
             var waitStop = fsWatcher.StartAndWait();
             pack.Task = waitStop;
             waitStop.ContinueWith(HandleFailedWatch, pack, TaskContinuationOptions.OnlyOnFaulted);

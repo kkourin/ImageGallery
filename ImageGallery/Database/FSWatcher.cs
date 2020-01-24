@@ -305,6 +305,7 @@ namespace ImageGallery.Database
 
         public void Stop()
         {
+            Console.WriteLine($"Stopped {Watcher.Directory}");
             if (queue != null)
             {
                 queue.Close();
