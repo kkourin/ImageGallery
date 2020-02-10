@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore.ChangeTracking;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -17,11 +18,11 @@ namespace ImageGallery
         public static readonly string[] ImageFileExtensions = new string[] { "jpg", "jpeg", "png", "gif", "bmp", "ico", "tif", "tiff" };
         public static readonly string[] TextFileExtensions = new string[] { "txt", "log", "nfo", "c", "cpp", "cc", "cxx", "h", "hpp", "hxx", "cs", "vb", "html", "htm", "xhtml", "xht", "xml", "css", "js", "php", "bat", "java", "lua", "py", "pl", "cfg", "ini", "dart", "go", "gohtml" };
         public static readonly string[] VideoFileExtensions = new string[] { "mp4", "webm", "mkv", "avi", "vob", "ogv", "ogg", "mov", "qt", "wmv", "m4p", "m4v", "mpg", "mp2", "mpeg", "mpe", "mpv", "m2v", "m4v", "flv", "f4v" };
-        private static readonly Color thumbnailBgColor;
+        private static readonly Color DefaultBgColour;
 
         static Helpers()
         {
-            thumbnailBgColor = Color.FromArgb(255, 238, 238, 238);
+            DefaultBgColour = Color.FromArgb(255, 238, 238, 238);
         }
 
         public static string GetFilenameExtension(string filePath, bool includeDot = false)
@@ -61,6 +62,11 @@ namespace ImageGallery
             return CheckExtension(filePath, ImageFileExtensions);
         }
 
+        public static bool IsVideoFile(string filePath)
+        {
+            return CheckExtension(filePath, VideoFileExtensions);
+        }
+
         // Throws argument exception. Warning: this does not check if the file has a image file extension by default.
         public static Image LoadImage(FileInfo file, long fileSizeLimit, bool checkExtension = false)
         {
@@ -84,7 +90,7 @@ namespace ImageGallery
             return img;
         }
 
-        public static Image CreateThumbnail(Image img, int width, int height)
+        public static Image CreateThumbnail(Image img, int width, int height, Color backgroundColor)
         {
             double srcRatio = (double)img.Width / img.Height;
             double dstRatio = (double)width / height;
@@ -126,10 +132,15 @@ namespace ImageGallery
             using (Graphics g = Graphics.FromImage(bmp))
             {
                 SetHighQuality(g);
-                g.FillRectangle(new SolidBrush(thumbnailBgColor), 0, 0, width, height);
+                g.FillRectangle(new SolidBrush(backgroundColor), 0, 0, width, height);
                 g.DrawImage(img, new Rectangle(0, 0, width, height), new Rectangle(x, y, w, h), GraphicsUnit.Pixel);
             }
             return bmp;
+        }
+
+        public static Image CreateThumbnail(Image img, int width, int height)
+        {
+            return CreateThumbnail(img, width, height, DefaultBgColour);
         }
 
         private static void SetHighQuality(Graphics g)
@@ -148,34 +159,6 @@ namespace ImageGallery
             }
         }
 
-
-        [DllImport("rpcrt4.dll", SetLastError = true)]
-        static extern int UuidCreateSequential(out Guid guid);
-
-        public static Guid NewSequentialId()
-        {
-            Guid guid;
-            UuidCreateSequential(out guid);
-            var s = guid.ToByteArray();
-            var t = new byte[16];
-            t[3] = s[0];
-            t[2] = s[1];
-            t[1] = s[2];
-            t[0] = s[3];
-            t[5] = s[4];
-            t[4] = s[5];
-            t[7] = s[6];
-            t[6] = s[7];
-            t[8] = s[8];
-            t[9] = s[9];
-            t[10] = s[10];
-            t[11] = s[11];
-            t[12] = s[12];
-            t[13] = s[13];
-            t[14] = s[14];
-            t[15] = s[15];
-            return new Guid(t);
-        }
 
         public static string Truncate(string value, int maxChars)
         {
@@ -297,7 +280,30 @@ namespace ImageGallery
             {
                 return null;
             }
+         
+            
             return MaxTime(file.LastWriteTimeUtc, file.CreationTimeUtc);
+        }
+
+        public static ObservableHashSet<string> TagStringToHash(string tagString)
+        {
+            return tagString
+                .Split(new char[] { '\n', ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(t => t.Trim())
+                .Where(t => t.Any())
+                .ToObservableHashSet();
+        }
+
+        public static string HashToTagString(ObservableHashSet<string> tags)
+        {
+            var tagList = tags.ToList();
+            tagList.Sort();
+            return String.Join("\r\n", tagList);
+        }
+
+        public static ObservableHashSet<T> ToObservableHashSet<T>(this IEnumerable<T> enumerable)
+        {
+            return new ObservableHashSet<T>(enumerable);
         }
     }
 

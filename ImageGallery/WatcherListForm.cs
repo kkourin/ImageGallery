@@ -29,7 +29,14 @@ namespace ImageGallery
             {
                 foreach (var watcher in ctx.Watchers)
                 {
-                    var item = new ListViewItem(new[] { watcher.Name, watcher.Enabled.ToString(), watcher.Directory, Watcher.HashToExtensionString(watcher.Whitelist) });
+                    var item = new ListViewItem(new[] {
+                        watcher.Name,
+                        watcher.Enabled.ToString(),
+                        watcher.Directory,
+                        Watcher.HashToExtensionString(watcher.Whitelist),
+                        watcher.ScanSubdirectories.ToString(),
+                        watcher.GenerateVideoThumbnails.ToString()
+                    });
                     item.Tag = watcher.Id;
                     watcherList.Add(item);
                 }

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace ImageGallery.Database.Models
 {
@@ -41,7 +42,7 @@ namespace ImageGallery.Database.Models
         [Required]
         public string Extension_fts { get; set; }
         [Required]
-        public string Custom_fts { get; set; }
+        public ObservableHashSet<string> Custom_fts { get; set; }
 
 
 
@@ -55,6 +56,17 @@ namespace ImageGallery.Database.Models
             LastUseTime = DateTime.UtcNow;
             TimesAccessed += 1;
         }
+
+        public static ObservableHashSet<string> TagStringToHash(string tagString)
+        {
+            return tagString.Split(new char[] { '|', ' ' }, StringSplitOptions.RemoveEmptyEntries).ToObservableHashSet();
+        }
+
+        public static string HashToTagString(ObservableHashSet<string> tags)
+        {
+            return String.Join("|", tags);
+        }
+
 
     }
 }

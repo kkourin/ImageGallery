@@ -40,6 +40,8 @@
             this.ImagesButton = new System.Windows.Forms.Button();
             this.VideoButton = new System.Windows.Forms.Button();
             this.FileSelectButton = new System.Windows.Forms.Button();
+            this.scanSubdirectoriesBox = new System.Windows.Forms.CheckBox();
+            this.GenerateVideoThumbnailsBox = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // DirLabel
@@ -77,7 +79,7 @@
             // 
             // HintLabel
             // 
-            this.HintLabel.Location = new System.Drawing.Point(62, 191);
+            this.HintLabel.Location = new System.Drawing.Point(62, 221);
             this.HintLabel.Name = "HintLabel";
             this.HintLabel.Size = new System.Drawing.Size(262, 33);
             this.HintLabel.TabIndex = 4;
@@ -104,7 +106,7 @@
             // 
             // AddButton
             // 
-            this.AddButton.Location = new System.Drawing.Point(90, 243);
+            this.AddButton.Location = new System.Drawing.Point(90, 257);
             this.AddButton.Name = "AddButton";
             this.AddButton.Size = new System.Drawing.Size(75, 23);
             this.AddButton.TabIndex = 6;
@@ -114,7 +116,7 @@
             // 
             // CancelAddButton
             // 
-            this.CancelAddButton.Location = new System.Drawing.Point(206, 243);
+            this.CancelAddButton.Location = new System.Drawing.Point(206, 257);
             this.CancelAddButton.Name = "CancelAddButton";
             this.CancelAddButton.Size = new System.Drawing.Size(75, 23);
             this.CancelAddButton.TabIndex = 7;
@@ -128,7 +130,7 @@
             this.ImagesButton.Name = "ImagesButton";
             this.ImagesButton.Size = new System.Drawing.Size(96, 23);
             this.ImagesButton.TabIndex = 3;
-            this.ImagesButton.Text = "Images";
+            this.ImagesButton.Text = "Add Images";
             this.ImagesButton.UseVisualStyleBackColor = true;
             this.ImagesButton.Click += new System.EventHandler(this.ImagesButton_Click);
             // 
@@ -138,7 +140,7 @@
             this.VideoButton.Name = "VideoButton";
             this.VideoButton.Size = new System.Drawing.Size(96, 23);
             this.VideoButton.TabIndex = 4;
-            this.VideoButton.Text = "Videos";
+            this.VideoButton.Text = "Add Videos";
             this.VideoButton.UseVisualStyleBackColor = true;
             this.VideoButton.Click += new System.EventHandler(this.VideoButton_Click);
             // 
@@ -152,11 +154,37 @@
             this.FileSelectButton.UseVisualStyleBackColor = true;
             this.FileSelectButton.Click += new System.EventHandler(this.FileSelectButton_Click);
             // 
+            // scanSubdirectoriesBox
+            // 
+            this.scanSubdirectoriesBox.AutoSize = true;
+            this.scanSubdirectoriesBox.Checked = true;
+            this.scanSubdirectoriesBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.scanSubdirectoriesBox.Location = new System.Drawing.Point(36, 196);
+            this.scanSubdirectoriesBox.Name = "scanSubdirectoriesBox";
+            this.scanSubdirectoriesBox.Size = new System.Drawing.Size(119, 17);
+            this.scanSubdirectoriesBox.TabIndex = 8;
+            this.scanSubdirectoriesBox.Text = "Scan subdirectories";
+            this.scanSubdirectoriesBox.UseVisualStyleBackColor = true;
+            // 
+            // GenerateVideoThumbnailsBox
+            // 
+            this.GenerateVideoThumbnailsBox.AutoSize = true;
+            this.GenerateVideoThumbnailsBox.Checked = true;
+            this.GenerateVideoThumbnailsBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.GenerateVideoThumbnailsBox.Location = new System.Drawing.Point(183, 196);
+            this.GenerateVideoThumbnailsBox.Name = "GenerateVideoThumbnailsBox";
+            this.GenerateVideoThumbnailsBox.Size = new System.Drawing.Size(152, 17);
+            this.GenerateVideoThumbnailsBox.TabIndex = 9;
+            this.GenerateVideoThumbnailsBox.Text = "Generate video thumbnails";
+            this.GenerateVideoThumbnailsBox.UseVisualStyleBackColor = true;
+            // 
             // AddWatcherForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(362, 278);
+            this.ClientSize = new System.Drawing.Size(362, 294);
+            this.Controls.Add(this.GenerateVideoThumbnailsBox);
+            this.Controls.Add(this.scanSubdirectoriesBox);
             this.Controls.Add(this.FileSelectButton);
             this.Controls.Add(this.VideoButton);
             this.Controls.Add(this.ImagesButton);
@@ -169,6 +197,9 @@
             this.Controls.Add(this.HintLabel);
             this.Controls.Add(this.WhitelistedLabel);
             this.Controls.Add(this.DirLabel);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "AddWatcherForm";
             this.Text = "Add Watcher";
             this.Load += new System.EventHandler(this.AddWatcherForm_Load);
@@ -191,5 +222,7 @@
         private System.Windows.Forms.Button ImagesButton;
         private System.Windows.Forms.Button VideoButton;
         private System.Windows.Forms.Button FileSelectButton;
+        private System.Windows.Forms.CheckBox scanSubdirectoriesBox;
+        private System.Windows.Forms.CheckBox GenerateVideoThumbnailsBox;
     }
 }

@@ -3,14 +3,16 @@ using System;
 using ImageGallery.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ImageGallery.Migrations
 {
     [DbContext(typeof(FilesContext))]
-    partial class FTSDataContextModelSnapshot : ModelSnapshot
+    [Migration("20200208050821_AddSubdirectoryAndVideoThumbnails")]
+    partial class AddSubdirectoryAndVideoThumbnails
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -143,9 +145,19 @@ namespace ImageGallery.Migrations
                         .HasColumnType("INTEGER")
                         .HasDefaultValue(true);
 
+                    b.Property<bool>("GenerateVideoThumbnails")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("ScanSubdirectories")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("Whitelist")
                         .IsRequired()

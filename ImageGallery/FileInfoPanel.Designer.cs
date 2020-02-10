@@ -33,6 +33,8 @@
             this.NameLabel = new System.Windows.Forms.Label();
             this.PathLabel = new System.Windows.Forms.Label();
             this.LoadingLabel = new System.Windows.Forms.Label();
+            this.TagsHeadingLabel = new System.Windows.Forms.Label();
+            this.TagsLabel = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // NameHeadingLabel
@@ -86,11 +88,33 @@
             this.LoadingLabel.Text = "Loading image...";
             this.LoadingLabel.Visible = false;
             // 
+            // TagsHeadingLabel
+            // 
+            this.TagsHeadingLabel.AutoSize = true;
+            this.TagsHeadingLabel.Location = new System.Drawing.Point(9, 38);
+            this.TagsHeadingLabel.Name = "TagsHeadingLabel";
+            this.TagsHeadingLabel.Size = new System.Drawing.Size(34, 13);
+            this.TagsHeadingLabel.TabIndex = 7;
+            this.TagsHeadingLabel.Text = "Tags:";
+            // 
+            // TagsLabel
+            // 
+            this.TagsLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.TagsLabel.AutoEllipsis = true;
+            this.TagsLabel.Location = new System.Drawing.Point(47, 38);
+            this.TagsLabel.Name = "TagsLabel";
+            this.TagsLabel.Size = new System.Drawing.Size(278, 13);
+            this.TagsLabel.TabIndex = 8;
+            this.TagsLabel.Text = "No tags.";
+            // 
             // FileInfoPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.LoadingLabel);
+            this.Controls.Add(this.TagsLabel);
+            this.Controls.Add(this.TagsHeadingLabel);
             this.Controls.Add(this.PathLabel);
             this.Controls.Add(this.NameLabel);
             this.Controls.Add(this.PathHeadingLabel);
@@ -109,5 +133,7 @@
         private System.Windows.Forms.Label NameLabel;
         private System.Windows.Forms.Label PathLabel;
         private System.Windows.Forms.Label LoadingLabel;
+        private System.Windows.Forms.Label TagsHeadingLabel;
+        private System.Windows.Forms.Label TagsLabel;
     }
 }

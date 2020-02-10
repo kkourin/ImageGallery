@@ -30,6 +30,7 @@
         {
             this.poppedPreviewBox = new Cyotek.Windows.Forms.ImageBox();
             this.fileInfoPanel = new ImageGallery.FileInfoPanel();
+            this.videoView = new ImageGallery.VideoControl();
             this.SuspendLayout();
             // 
             // poppedPreviewBox
@@ -41,25 +42,39 @@
             this.poppedPreviewBox.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Bicubic;
             this.poppedPreviewBox.Location = new System.Drawing.Point(0, 0);
             this.poppedPreviewBox.Name = "poppedPreviewBox";
-            this.poppedPreviewBox.Size = new System.Drawing.Size(800, 385);
+            this.poppedPreviewBox.Size = new System.Drawing.Size(800, 391);
             this.poppedPreviewBox.TabIndex = 0;
             this.poppedPreviewBox.Resize += new System.EventHandler(this.poppedPreviewBox_Resize);
             // 
             // fileInfoPanel
             // 
             this.fileInfoPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.fileInfoPanel.Items = null;
             this.fileInfoPanel.Loading = false;
-            this.fileInfoPanel.Location = new System.Drawing.Point(0, 385);
+            this.fileInfoPanel.Location = new System.Drawing.Point(0, 391);
             this.fileInfoPanel.Name = "fileInfoPanel";
             this.fileInfoPanel.Padding = new System.Windows.Forms.Padding(3);
-            this.fileInfoPanel.Size = new System.Drawing.Size(800, 65);
+            this.fileInfoPanel.Size = new System.Drawing.Size(800, 59);
             this.fileInfoPanel.TabIndex = 1;
+            // 
+            // videoView
+            // 
+            this.videoView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.videoView.LibVLC = null;
+            this.videoView.Location = new System.Drawing.Point(0, 0);
+            this.videoView.Name = "videoView";
+            this.videoView.Queue = null;
+            this.videoView.Size = new System.Drawing.Size(800, 391);
+            this.videoView.Started = false;
+            this.videoView.TabIndex = 2;
+            this.videoView.Visible = false;
             // 
             // PopoutPreview
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.videoView);
             this.Controls.Add(this.poppedPreviewBox);
             this.Controls.Add(this.fileInfoPanel);
             this.Name = "PopoutPreview";
@@ -76,5 +91,6 @@
 
         private Cyotek.Windows.Forms.ImageBox poppedPreviewBox;
         private FileInfoPanel fileInfoPanel;
+        private VideoControl videoView;
     }
 }

@@ -103,7 +103,7 @@ namespace ImageGallery.Database
             this.SyncTimer = timer;
             SyncMutex = mutex;
             this.watcher = watcher;
-            loopTask = Task.Run(() => Loop(cts.Token));
+            loopTask = Task.Factory.StartNew(() => Loop(cts.Token), CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
         
         private CacheItemPolicy ChangeCachePolicy()
@@ -284,7 +284,8 @@ namespace ImageGallery.Database
             FsWatcher.Deleted += OnChanged;
             FsWatcher.Renamed += OnRenamed;
             FsWatcher.Error += OnError;
-            FsWatcher.IncludeSubdirectories = true;
+            Console.WriteLine($"Starting watcher name={Watcher.Name}, scan={Watcher.ScanSubdirectories} ");
+            FsWatcher.IncludeSubdirectories = Watcher.ScanSubdirectories.GetValueOrDefault();
 
             syncTimer = new System.Timers.Timer(InitIntervalMillis);
             syncTimer.Elapsed += HandleSyncTimer;
@@ -389,7 +390,7 @@ namespace ImageGallery.Database
 
         public Task StartAndWait()
         {
-            return Task.Run(() =>
+            return Task.Factory.StartNew(() =>
             {
                 Start();
                 stoppedEwh.WaitOne();
@@ -398,7 +399,7 @@ namespace ImageGallery.Database
                     throw new WatcherFailure("Watcher stopped abnormally.",  waitResult.exception);
                 }
                 return;
-            });
+            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
 
 

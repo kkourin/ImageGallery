@@ -36,11 +36,13 @@
             this.openFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.CopyFileButton = new System.Windows.Forms.ToolStripMenuItem();
             this.CopyImageButton = new System.Windows.Forms.ToolStripMenuItem();
+            this.editTagsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.addTagsButton = new System.Windows.Forms.ToolStripMenuItem();
             this.previewBox = new System.Windows.Forms.PictureBox();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.infoLabel = new System.Windows.Forms.ToolStripStatusLabel();
-            this.toolStrip1 = new System.Windows.Forms.ToolStrip();
+            this.MainToolStrip = new System.Windows.Forms.ToolStrip();
             this.searchTextBox = new System.Windows.Forms.ToolStripTextBox();
             this.RefreshButton = new System.Windows.Forms.ToolStripButton();
             this.sortButton = new System.Windows.Forms.ToolStripDropDownButton();
@@ -51,6 +53,7 @@
             this.WatcherDropDown = new System.Windows.Forms.ToolStripDropDownButton();
             this.ShowAllButton = new System.Windows.Forms.ToolStripButton();
             this.PopoutPreviewButton = new System.Windows.Forms.ToolStripButton();
+            this.mainVideoView = new ImageGallery.VideoControl();
             this.fileInfoPanel = new ImageGallery.FileInfoPanel();
             this.NameToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.MinimizedIcon = new System.Windows.Forms.NotifyIcon(this.components);
@@ -63,7 +66,7 @@
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
             this.statusStrip.SuspendLayout();
-            this.toolStrip1.SuspendLayout();
+            this.MainToolStrip.SuspendLayout();
             this.TrayContextMenu.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -72,7 +75,6 @@
             this.ilvThumbs.AllowDrop = true;
             this.ilvThumbs.AllowItemReorder = false;
             this.ilvThumbs.CacheLimit = "20000000";
-            this.ilvThumbs.ContextMenuStrip = this.GalleryRightClick;
             this.ilvThumbs.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ilvThumbs.Location = new System.Drawing.Point(0, 25);
             this.ilvThumbs.Name = "ilvThumbs";
@@ -94,9 +96,11 @@
             this.OpenButton,
             this.openFolderToolStripMenuItem,
             this.CopyFileButton,
-            this.CopyImageButton});
+            this.CopyImageButton,
+            this.editTagsToolStripMenuItem,
+            this.addTagsButton});
             this.GalleryRightClick.Name = "GalleryRightClick";
-            this.GalleryRightClick.Size = new System.Drawing.Size(178, 92);
+            this.GalleryRightClick.Size = new System.Drawing.Size(178, 136);
             this.GalleryRightClick.Opening += new System.ComponentModel.CancelEventHandler(this.GalleryRightClick_Opening);
             this.GalleryRightClick.Opened += new System.EventHandler(this.GalleryRightClick_Opened);
             // 
@@ -130,6 +134,20 @@
             this.CopyImageButton.Text = "Copy as image";
             this.CopyImageButton.Click += new System.EventHandler(this.CopyImageButton_Click);
             // 
+            // editTagsToolStripMenuItem
+            // 
+            this.editTagsToolStripMenuItem.Name = "editTagsToolStripMenuItem";
+            this.editTagsToolStripMenuItem.Size = new System.Drawing.Size(177, 22);
+            this.editTagsToolStripMenuItem.Text = "Edit tags";
+            this.editTagsToolStripMenuItem.Click += new System.EventHandler(this.editTagsToolStripMenuItem_Click);
+            // 
+            // addTagsButton
+            // 
+            this.addTagsButton.Name = "addTagsButton";
+            this.addTagsButton.Size = new System.Drawing.Size(177, 22);
+            this.addTagsButton.Text = "Add tags";
+            this.addTagsButton.Click += new System.EventHandler(this.addTagsButton_Click);
+            // 
             // previewBox
             // 
             this.previewBox.ContextMenuStrip = this.GalleryRightClick;
@@ -153,10 +171,11 @@
             // 
             this.splitContainer1.Panel1.Controls.Add(this.ilvThumbs);
             this.splitContainer1.Panel1.Controls.Add(this.statusStrip);
-            this.splitContainer1.Panel1.Controls.Add(this.toolStrip1);
+            this.splitContainer1.Panel1.Controls.Add(this.MainToolStrip);
             // 
             // splitContainer1.Panel2
             // 
+            this.splitContainer1.Panel2.Controls.Add(this.mainVideoView);
             this.splitContainer1.Panel2.Controls.Add(this.previewBox);
             this.splitContainer1.Panel2.Controls.Add(this.fileInfoPanel);
             this.splitContainer1.Panel2MinSize = 100;
@@ -183,23 +202,23 @@
             this.infoLabel.Text = "Ready.";
             this.infoLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // toolStrip1
+            // MainToolStrip
             // 
-            this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.MainToolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.searchTextBox,
             this.RefreshButton,
             this.sortButton,
             this.WatcherDropDown,
             this.ShowAllButton,
             this.PopoutPreviewButton});
-            this.toolStrip1.Location = new System.Drawing.Point(0, 0);
-            this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-            this.toolStrip1.Size = new System.Drawing.Size(783, 25);
-            this.toolStrip1.TabIndex = 1;
-            this.toolStrip1.TabStop = true;
-            this.toolStrip1.Text = "MainToolStrip";
-            this.toolStrip1.Enter += new System.EventHandler(this.toolStrip1_Enter);
+            this.MainToolStrip.Location = new System.Drawing.Point(0, 0);
+            this.MainToolStrip.Name = "MainToolStrip";
+            this.MainToolStrip.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
+            this.MainToolStrip.Size = new System.Drawing.Size(783, 25);
+            this.MainToolStrip.TabIndex = 1;
+            this.MainToolStrip.TabStop = true;
+            this.MainToolStrip.Text = "MainToolStrip";
+            this.MainToolStrip.Enter += new System.EventHandler(this.toolStrip1_Enter);
             // 
             // searchTextBox
             // 
@@ -300,6 +319,18 @@
             this.PopoutPreviewButton.CheckedChanged += new System.EventHandler(this.PopoutPreviewButton_CheckedChanged);
             this.PopoutPreviewButton.Click += new System.EventHandler(this.PopoutPreviewButton_Click);
             // 
+            // mainVideoView
+            // 
+            this.mainVideoView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.mainVideoView.LibVLC = null;
+            this.mainVideoView.Location = new System.Drawing.Point(0, 0);
+            this.mainVideoView.Name = "mainVideoView";
+            this.mainVideoView.Queue = null;
+            this.mainVideoView.Size = new System.Drawing.Size(293, 485);
+            this.mainVideoView.Started = false;
+            this.mainVideoView.TabIndex = 4;
+            this.mainVideoView.Visible = false;
+            // 
             // fileInfoPanel
             // 
             this.fileInfoPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
@@ -324,12 +355,12 @@
             this.TrayContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.TrayExitButton});
             this.TrayContextMenu.Name = "TrayContextMenu";
-            this.TrayContextMenu.Size = new System.Drawing.Size(94, 26);
+            this.TrayContextMenu.Size = new System.Drawing.Size(93, 26);
             // 
             // TrayExitButton
             // 
             this.TrayExitButton.Name = "TrayExitButton";
-            this.TrayExitButton.Size = new System.Drawing.Size(93, 22);
+            this.TrayExitButton.Size = new System.Drawing.Size(92, 22);
             this.TrayExitButton.Text = "Exit";
             this.TrayExitButton.Click += new System.EventHandler(this.TrayExitButton_Click);
             // 
@@ -356,8 +387,8 @@
             this.splitContainer1.ResumeLayout(false);
             this.statusStrip.ResumeLayout(false);
             this.statusStrip.PerformLayout();
-            this.toolStrip1.ResumeLayout(false);
-            this.toolStrip1.PerformLayout();
+            this.MainToolStrip.ResumeLayout(false);
+            this.MainToolStrip.PerformLayout();
             this.TrayContextMenu.ResumeLayout(false);
             this.ResumeLayout(false);
 
@@ -370,7 +401,7 @@
         private System.Windows.Forms.SplitContainer splitContainer1;
         private System.Windows.Forms.StatusStrip statusStrip;
         private System.Windows.Forms.ToolStripStatusLabel infoLabel;
-        private System.Windows.Forms.ToolStrip toolStrip1;
+        private System.Windows.Forms.ToolStrip MainToolStrip;
         private System.Windows.Forms.ToolStripButton RefreshButton;
         private System.Windows.Forms.ToolStripTextBox searchTextBox;
         private System.Windows.Forms.ToolStripDropDownButton sortButton;
@@ -391,6 +422,9 @@
         private FileInfoPanel fileInfoPanel;
         private System.Windows.Forms.ToolStripMenuItem CopyFileButton;
         private System.Windows.Forms.ToolStripMenuItem CopyImageButton;
+        private VideoControl mainVideoView;
+        private System.Windows.Forms.ToolStripMenuItem editTagsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem addTagsButton;
     }
 }
 

@@ -56,8 +56,9 @@ namespace ImageGallery
             Watcher watcher;
             using (var ctx = new FilesContext())
             {
-                watcher = ctx.AddWatcherForm(name, directory, whitelist);
+                watcher = ctx.AddWatcherForm(name, directory, whitelist, GenerateVideoThumbnailsBox.Checked, scanSubdirectoriesBox.Checked);
             }
+            Console.WriteLine(GenerateVideoThumbnailsBox.Checked);
             AddedWatcher = watcher;
             this.Close();
         }

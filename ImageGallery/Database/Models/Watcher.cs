@@ -20,8 +20,9 @@ namespace ImageGallery.Database.Models
         public string Directory { get; set; }
         [Required]
         public HashSet<string> Whitelist { get; set; }
-        [Required]
-        public bool Enabled { get; set; }
+        public bool? Enabled { get; set; }
+        public bool? GenerateVideoThumbnails { get; set; }
+        public bool? ScanSubdirectories { get; set; }
 
         public List<File> Files { get; set; }
 

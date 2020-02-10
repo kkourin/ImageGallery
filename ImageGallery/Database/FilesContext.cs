@@ -8,7 +8,9 @@ using System.IO;
 
 namespace ImageGallery.Database
 {
-    using Models;
+    using ImageGallery.Database.Models;
+    using Microsoft.EntityFrameworkCore.ChangeTracking;
+
     class FilesContext : DbContext
     {
         public DbSet<File> Files { get; set; }
@@ -24,6 +26,7 @@ namespace ImageGallery.Database
         }
 
         public static DatabaseConfig Config { get; set; }
+        public static VideoThumbnailExtractor videoThumbnailExtractor { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             DatabaseConfig config = Config ?? new DatabaseConfig();
@@ -35,6 +38,23 @@ namespace ImageGallery.Database
             optionsBuilder.UseSqlite("Data Source=" + config.DatabasePath);
         }
 
+        public int UpdateFilesTags(List<File> editedFiles, ObservableHashSet<string> newTags)
+        {
+            HashSet<int> editedFileIds = editedFiles.Select(file => file.Id).ToHashSet();
+            var files = Files.Where(file => editedFileIds.Contains(file.Id));
+            int count = 0;
+            foreach (var file in files)
+            {
+                // Unforunately union changes are not tracked...
+                var tempHash = new ObservableHashSet<string>(file.Custom_fts);
+                tempHash.UnionWith(newTags);
+                file.Custom_fts = tempHash;
+                ++count;
+            }
+            SaveChanges();
+            return count;
+        }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 
@@ -44,6 +64,14 @@ namespace ImageGallery.Database
 
             modelBuilder.Entity<Watcher>()
                 .Property(b => b.Enabled)
+                .HasDefaultValue(true);
+
+            modelBuilder.Entity<Watcher>()
+                .Property(b => b.GenerateVideoThumbnails)
+                .HasDefaultValue(true);
+
+            modelBuilder.Entity<Watcher>()
+                .Property(b => b.ScanSubdirectories)
                 .HasDefaultValue(true);
 
             modelBuilder.Entity<File>()
@@ -72,7 +100,10 @@ namespace ImageGallery.Database
 
             modelBuilder.Entity<File>()
                 .Property(b => b.Custom_fts)
-                .HasDefaultValue("");
+                .HasDefaultValue(new ObservableHashSet<string>())
+                .HasConversion(
+                    h => File.HashToTagString(h),
+                    s => File.TagStringToHash(s));
 
             modelBuilder.Entity<File>()
                 .Property(b => b.Comment)
@@ -165,6 +196,7 @@ namespace ImageGallery.Database
         {
             RecordUse(new List<File> { file });
         }
+
         public IEnumerable<File> FilesInDirectory(string directory, Watcher watcher)
         {
             var files = Files.FromSqlRaw(
@@ -219,7 +251,7 @@ namespace ImageGallery.Database
                 file.Name = fileInfo.Name;
                 file.Name_fts = fileInfo.Name;
                 file.Name_tokenized_fts = DBHelpers.TokenizeName(fileInfo);
-                file.Thumbnail = DBHelpers.GetThumbnail(fileInfo);
+                file.Thumbnail = MaybeMakeThumbnail(fileInfo, watcher);
                 SaveChanges();
             }
             else
@@ -276,7 +308,7 @@ namespace ImageGallery.Database
                 WatcherId = watcher.Id
             };
             // Fix these when they actually get exceptions.
-            newFile.Thumbnail = DBHelpers.GetThumbnail(fileInfo);
+            newFile.Thumbnail = MaybeMakeThumbnail(fileInfo, watcher);
             return newFile;
 
         }
@@ -300,12 +332,24 @@ namespace ImageGallery.Database
             }
         }
 
+        public bool UpdateFileTags(File file)
+        {
+            var foundFile = Files.Find(file.Id);
+            if (foundFile == null)
+            {
+                return false;
+            }
+            foundFile.Custom_fts = file.Custom_fts;
+            SaveChanges();
+            return true;
+        }
+
         private void UpdateFileContents(File file, FileInfo fileInfo, Watcher watcher)
         {
             file.CreatedTime = fileInfo.CreationTimeUtc;
             file.FileModifiedTime = fileInfo.LastWriteTimeUtc;
             file.LastChangeTime = Helpers.LastChangeTime(fileInfo);
-            file.Thumbnail = DBHelpers.GetThumbnail(fileInfo); // TODO: get new thumbnail
+            file.Thumbnail = MaybeMakeThumbnail(fileInfo, watcher); // TODO: get new thumbnail
             SaveChanges();
         }
         
@@ -314,6 +358,20 @@ namespace ImageGallery.Database
             return from file in Files
                    where file.WatcherId == watcher.Id
                    select file;
+        }
+
+        private static byte[] MaybeMakeThumbnail(FileInfo file, Watcher watcher)
+        {
+            if (Helpers.IsImageFile(file.FullName))
+            {
+                return DBHelpers.GetThumbnail(file);
+            }
+            else if (Helpers.IsVideoFile(file.FullName) && videoThumbnailExtractor != null && watcher.GenerateVideoThumbnails.GetValueOrDefault())
+            {
+                Console.WriteLine($"Generating video thumbnail for file {file.Name}.");
+                return DBHelpers.GetThumbnail(file, videoThumbnailExtractor);
+            }
+            return null;
         }
         public bool Sync(Watcher watcher)
         {
@@ -342,7 +400,7 @@ namespace ImageGallery.Database
             {
                 file.FileModifiedTime = filesInDir[file.FullName].Item1;
                 file.FileCreatedTime = filesInDir[file.FullName].Item2;
-                file.Thumbnail = DBHelpers.GetThumbnail(new FileInfo(file.FullName));
+                file.Thumbnail = MaybeMakeThumbnail(new FileInfo(file.FullName), watcher);
             }
 
             // Add files that are new.
@@ -361,7 +419,7 @@ namespace ImageGallery.Database
 
         public void SyncCreatedDirectory(Watcher watcher, string dir)
         {
-            var filesInDir = DBHelpers.GetAllFileInfoInDirectory(watcher, dir);
+            var filesInDir = DBHelpers.GetAllFileInfoInDirectory(watcher, dir, watcher.ScanSubdirectories.GetValueOrDefault());
             if (filesInDir == null)
             {
                 return;
@@ -386,14 +444,18 @@ namespace ImageGallery.Database
             SaveChanges();
         }
 
-        public Watcher AddWatcherForm(string name, string dir, string whitelist)
+        public Watcher AddWatcherForm(string name, string dir, string whitelist, bool generateVideoThumbnails, bool scanSubdirectories)
         {
-            var watcher = new Watcher{
+            var watcher = new Watcher
+            {
                 Name = name,
                 Directory = dir,
-                Whitelist = Watcher.ExtensionStringToHash(whitelist)
+                Whitelist = Watcher.ExtensionStringToHash(whitelist),
             };
+
             Watchers.Add(watcher);
+            watcher.GenerateVideoThumbnails = generateVideoThumbnails;
+            watcher.ScanSubdirectories = scanSubdirectories;
             SaveChanges();
             return watcher;
         }

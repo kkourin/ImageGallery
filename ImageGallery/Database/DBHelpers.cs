@@ -7,6 +7,7 @@ using System.IO;
 
 namespace ImageGallery.Database
 {
+    using Microsoft.EntityFrameworkCore.ChangeTracking;
     using Models;
     using System.Drawing;
     using System.Timers;
@@ -64,16 +65,9 @@ namespace ImageGallery.Database
             }
             return false;
         }
-        public static byte[] GetThumbnail(FileInfo file, long fileSizeLimit = 100000000)
+
+        private static byte[] GetImageThumbnail(FileInfo file, long fileSizeLimit = 100000000)
         {
-            if (!Helpers.IsImageFile(file.Name))
-            {
-                return null;
-            }
-            if (!file.Exists)
-            {
-                return null;
-            }
             Image img;
             try
             {
@@ -87,7 +81,9 @@ namespace ImageGallery.Database
             catch (FileNotFoundException)
             {
                 return null;
-            } catch( Exception ) {
+            }
+            catch (Exception)
+            {
                 // TODO: remopve this catch all. I use it right now to not fail on open files.
                 return null;
             }
@@ -105,23 +101,73 @@ namespace ImageGallery.Database
             }
         }
 
+        private static byte[] GetVideoThumbnail(FileInfo file, VideoThumbnailExtractor videoThumbnailExtractor)
+        {
+            Image img = videoThumbnailExtractor.GenerateFromPath(file.FullName);
+            if (img == null)
+            {
+                return null;
+            }
+            try
+            {
+                Image thumbnailRawBytes = Helpers.CreateThumbnail(img, 320, 320, Color.Black);
+                byte[] thumbnail = Helpers.ImageToJpegByteArray(thumbnailRawBytes);
+                return thumbnail;
+            }
+            catch (ArgumentException)
+            {
+                return null;
+            }
+        }
+
+        public static byte[] GetThumbnail(FileInfo file)
+        {
+            if (!file.Exists)
+            {
+                return null;
+            }
+            if (Helpers.IsImageFile(file.Name))
+            {
+                return GetImageThumbnail(file);
+            }
+            return null;
+
+        }
+        public static byte[] GetThumbnail(FileInfo file, VideoThumbnailExtractor videoThumbnailExtractor)
+        {
+            if (!file.Exists)
+            {
+                return null;
+            }
+            if (Helpers.IsImageFile(file.Name))
+            {
+                return GetImageThumbnail(file);
+            }
+            else if (Helpers.IsVideoFile(file.Name) && videoThumbnailExtractor != null)
+            {
+                return GetVideoThumbnail(file, videoThumbnailExtractor);
+            }
+            return null;
+
+        }
+
 
 
         // If extensions is empty, returns ALL. Note: only counts white listed files.
         public static Dictionary<string, (DateTime, DateTime)> GetAllFileInfo(Watcher watcher)
         {
             var dir = watcher.Directory;
-            return GetAllFileInfoInDirectory(watcher, dir);
+            return GetAllFileInfoInDirectory(watcher, dir, watcher.ScanSubdirectories.GetValueOrDefault());
         }
 
         // If extensions is empty, returns ALL. Note: only counts white listed files.
-        public static Dictionary<string, (DateTime, DateTime)> GetAllFileInfoInDirectory(Watcher watcher, string dir)
+        public static Dictionary<string, (DateTime, DateTime)> GetAllFileInfoInDirectory(Watcher watcher, string dir, bool recursive)
         {
             if (!Directory.Exists(dir))
             {
                 return null;
             }
-            var files = from filename in Directory.EnumerateFiles(dir, "*", SearchOption.AllDirectories)
+            var files = from filename in Directory.EnumerateFiles(dir, "*", recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
                         where watcher.WhitelistedFile(filename)
                         select new KeyValuePair<string, (DateTime, DateTime)>(
                             filename,
@@ -139,5 +185,8 @@ namespace ImageGallery.Database
             timer.Stop();
             timer.Start();
         }
+
+
+
     }
 }

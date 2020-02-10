@@ -2,12 +2,17 @@
 
 namespace ImageGallery.Migrations
 {
-    public partial class CreateEnabledColumn : Migration
+    public partial class AddSubdirectoryAndVideoThumbnails : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<bool>(
-                name: "Enabled",
+                name: "GenerateVideoThumbnails",
+                table: "Watchers",
+                defaultValue: true);
+
+            migrationBuilder.AddColumn<bool>(
+                name: "ScanSubdirectories",
                 table: "Watchers",
                 defaultValue: true);
         }
@@ -15,7 +20,11 @@ namespace ImageGallery.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "Enabled",
+                name: "GenerateVideoThumbnails",
+                table: "Watchers");
+
+            migrationBuilder.DropColumn(
+                name: "ScanSubdirectories",
                 table: "Watchers");
         }
     }

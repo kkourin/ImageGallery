@@ -16,6 +16,7 @@ namespace ImageGallery
 {
     using Database;
     using Database.Models;
+    using LibVLCSharp.Shared;
     using NHotkey;
     using System.Configuration;
 
@@ -40,16 +41,26 @@ namespace ImageGallery
         private ToolStripMenuItem ManageWatchersButton;
         private const long maxPreviewSize = 15*1024*1024;
         private const long maxClipboardSize = 30*1024*1024;
+        private bool _displayingVideo;
+
+        private LibVLC _libVLC;
+        private MediaPlayer _mediaPlayer;
+
 
         static MainForm()
         {
             Adaptor = new FileModelAdapter();
         }
-        public MainForm(Database.WatcherMonitor monitor)
+        public MainForm(Database.WatcherMonitor monitor, LibVLC libVLC)
         {
             // Init Form
             InitializeComponent();
-            
+
+            _libVLC = libVLC;
+            _mediaPlayer = new MediaPlayer(libVLC);
+            mainVideoView.LibVLC = _libVLC;
+            //mainVideoView.SetPlayer(_mediaPlayer);
+
             WatcherDropDown.DropDown.Closing += WatcherDropDown_Closing;
             Helpers.DisableFormTransition(Handle);
 
@@ -67,7 +78,7 @@ namespace ImageGallery
             ManageWatchersButton = new ToolStripMenuItem("Manage Watchers", null, ManageWatchersButton_onClick);
 
             // Initialize preview
-            popoutPreview = new PopoutPreview();
+            popoutPreview = new PopoutPreview(_libVLC);
             popoutPreview.FormClosing += new FormClosingEventHandler(popoutPreview_Closing);
 
             // Initialize Watchers
@@ -407,9 +418,11 @@ namespace ImageGallery
         void popoutPreview_Closing(object sender, FormClosingEventArgs e)
         {
             PopoutPreviewButton.Checked = false;
-
             splitContainer1.Panel2Collapsed = false;
-            RefreshPreviews();
+            //RefreshPreviewImage();
+            //MaybeShowVideoPlayers();
+            MaybeSetMediaWindow();
+            RefreshPreview();
         }
 
 
@@ -425,94 +438,184 @@ namespace ImageGallery
             popoutPreview.FileInfoPanel.Loading = loading;
         }
 
+        private void StopVideos()
+        {
+            mainVideoView.stopVideoViewSafe();
+            popoutPreview.stopMediaPlayer();
+        }
+
         private void ilvThumbs_SelectionChanged(object sender, EventArgs e)
         {
+            RefreshPreview();
+        }
+
+        private void RefreshPreview()
+        {
+            Console.WriteLine("test");
             var numSelected = ilvThumbs.SelectedItems.Count;
             SetInfoPanel(ilvThumbs.SelectedItems);
 
             if (numSelected != 1)
             {
                 previewImage = null;
-                RefreshPreviews();
+                if (_displayingVideo)
+                {
+                    StopVideos();
+                }
+                _displayingVideo = false;
+                MaybeShowVideoPlayers();
+                RefreshPreviewImage();
                 return;
             }
             Image thumbnail = ilvThumbs.SelectedItems[0].ThumbnailImage;
             File file = (File)ilvThumbs.SelectedItems[0].VirtualItemKey;
-            //SetInfoPanelFile(file);
             previewCts.Cancel();
             previewCts = new CancellationTokenSource();
             SetPreviewImage(thumbnail, file, previewCts.Token);
-
         }
+
+       
 
         private Task SetPreviewImage(Image thumbnail, File file, CancellationToken token)
         {
-            Console.WriteLine(thumbnail == null);
+            
             return Task.Run(() =>
             {
-                if (thumbnail != null)
+                if (Helpers.IsVideoFile(file.FullName))
                 {
-                    previewImage = thumbnail;
-                }
-                else
-                {
-                    previewImage = FileModelAdapter.getThumbnailFromFile(file);
-                }
-                if (token.IsCancellationRequested)
-                {
+                    setLoadedVideo(thumbnail, file, token);
                     return;
                 }
-                this.Invoke((MethodInvoker)delegate
-                {
-                    RefreshPreviews();
-                    SetInfoPanelLoading(true);
-                });
-                if (token.IsCancellationRequested)
-                {
-                    return;
-                }
-                // Don't load full preview if it's not an image file.
-                if (!Helpers.IsImageFile(file.Name))
-                {
-                    this.Invoke((MethodInvoker)delegate
-                    {
-                        SetInfoPanelLoading(false);
-                    });
-                    return;
-                }
+                setLoadedImage(thumbnail, file, token);
+            }, token);
+            
+        }
 
-                Image image;
-                try
-                {
-                    image = Helpers.LoadImage(new FileInfo(file.FullName), maxPreviewSize);
-                } catch (ArgumentException e)
-                {
-                    this.Invoke((MethodInvoker)delegate
-                    {
-                        this.infoLabel.Text = $"Could not show preview. {e.Message}";
-                        SetInfoPanelLoading(false);
-                    });
-                    return;
-                }
-                if (image == null)
-                {
-                    this.Invoke((MethodInvoker)delegate
-                    {
-                        SetInfoPanelLoading(false);
-                    });
-                    return;
-                }
-                if (token.IsCancellationRequested)
-                {
-                    return;
-                }
-                previewImage = image;
+        public void MaybeShowVideoPlayers()
+        {
+            if (!_displayingVideo)
+            {
+                popoutPreview.SetVideoPlayerVisible(false);
+                mainVideoView.setVideoViewVisibleSafe(false);
+
+                return;
+            }
+            if (!splitContainer1.Panel2Collapsed)
+            {
+                mainVideoView.setVideoViewVisibleSafe(true);
+            }
+            if (popoutPreview.Visible)
+            {
+                popoutPreview.SetVideoPlayerVisible(true);
+            }
+
+        }
+
+        private void setLoadedVideo(Image thumbnail, File file, CancellationToken token)
+        {
+            
+            if (thumbnail != null)
+            {
+                previewImage = thumbnail;
+            }
+            else
+            {
+                previewImage = FileModelAdapter.getThumbnailFromFile(file);
+            }
+            
+
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+            _displayingVideo = true;
+            this.Invoke((MethodInvoker)delegate
+            {
+                RefreshPreviewImage();
+                SetInfoPanelLoading(true);
+                mainVideoView.setMediaFromFile(file);
+                popoutPreview.SetMediaPlayerMedia(file);
+            });
+            MaybeShowVideoPlayers();
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+            this.Invoke((MethodInvoker)delegate
+            {
+                SetInfoPanelLoading(false);
+            });
+        }
+        private void setLoadedImage(Image thumbnail, File file, CancellationToken token)
+        {
+            if (_displayingVideo)
+            {
+                StopVideos();
+            }
+            _displayingVideo = false;
+            MaybeShowVideoPlayers();
+            if (thumbnail != null)
+            {
+                previewImage = thumbnail;
+            }
+            else
+            {
+                previewImage = FileModelAdapter.getThumbnailFromFile(file);
+            }
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+            this.Invoke((MethodInvoker)delegate
+            {
+                RefreshPreviewImage();
+            });
+            if (!Helpers.IsImageFile(file.Name))
+            {
+                return;
+            }
+            // Is image file. 
+            this.Invoke((MethodInvoker)delegate
+            {
+                SetInfoPanelLoading(true);
+            });
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            Image image;
+            try
+            {
+                image = Helpers.LoadImage(new FileInfo(file.FullName), maxPreviewSize);
+            }
+            catch (ArgumentException e)
+            {
                 this.Invoke((MethodInvoker)delegate
                 {
-                    RefreshPreviews();
+                    this.infoLabel.Text = $"Could not show preview. {e.Message}";
                     SetInfoPanelLoading(false);
                 });
-            }, token);
+                return;
+            }
+            if (image == null)
+            {
+                this.Invoke((MethodInvoker)delegate
+                {
+                    SetInfoPanelLoading(false);
+                });
+                return;
+            }
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+            previewImage = image;
+            this.Invoke((MethodInvoker)delegate
+            {
+                RefreshPreviewImage();
+                SetInfoPanelLoading(false);
+            });
         }
 
         private void ilvThumbs_ItemDoubleClick(object sender, ItemClickEventArgs e)
@@ -603,7 +706,7 @@ namespace ImageGallery
             }
         }
 
-        private void RefreshPreviews()
+        private void RefreshPreviewImage()
         {
             if (previewImage == null)
             {
@@ -634,11 +737,24 @@ namespace ImageGallery
         private void ShowPopoutPreview()
         {
             splitContainer1.Panel2Collapsed = true;
-            if (previewImage != null)
-            {
-                popoutPreview.PreviewImage = previewImage;
-            }
             popoutPreview.Show(this);
+            //MaybeShowVideoPlayers();
+            MaybeSetMediaWindow();
+            RefreshPreview();
+        }
+
+        private void MaybeSetMediaWindow()
+        {
+            mainVideoView.SetPlayer(null);
+            popoutPreview.setMediaPlayer(null);
+            if (!splitContainer1.Panel2Collapsed)
+            {
+                mainVideoView.SetPlayer(_mediaPlayer);
+                //previewBox.Image = previewImage;
+            } else if (popoutPreview.Visible)
+            {
+                popoutPreview.setMediaPlayer(_mediaPlayer);
+            }
         }
 
         private void watchersButton_Click_1(object sender, EventArgs e)
@@ -787,6 +903,7 @@ namespace ImageGallery
                 popoutPreview.Location = new Point(Math.Max(settings.PopoutX, 0), Math.Max(settings.PopoutY, 0));
                 popoutPreview.Width = settings.PopoutWidth;
                 popoutPreview.Height = settings.PopoutHeight;
+                // This will also set the mediaplayer.
                 PopoutPreviewButton.Checked = true;
             } else
             {
@@ -795,6 +912,7 @@ namespace ImageGallery
 
                 popoutPreview.Width = previewBox.Width;
                 popoutPreview.Height = Height;
+                mainVideoView.SetPlayer(_mediaPlayer);
             }
             SetActiveIdsFromConfigString(settings.ActiveWatchers);
             SetSortColumn((FilesContext.SortColumn)settings.SortColumn);
@@ -825,7 +943,7 @@ namespace ImageGallery
             settings.PopoutShow = PopoutPreviewButton.Checked;
             if (PopoutPreviewButton.Checked)
             {
-                if (popoutPreview.WindowState == FormWindowState.Minimized)
+                if (popoutPreview.WindowState == FormWindowState.Minimized || popoutPreview.WindowState == FormWindowState.Maximized)
                 {
                     settings.MainWidth = RestoreBounds.Width;
                     settings.MainHeight = RestoreBounds.Height;
@@ -1037,7 +1155,11 @@ namespace ImageGallery
 
         private void GalleryRightClick_Opening(object sender, System.ComponentModel.CancelEventArgs e)
         {
-
+            var numSelected = ilvThumbs.SelectedItems.Count;
+            if (numSelected == 0)
+            {
+                e.Cancel = true;
+            }
         }
 
         private void ilvThumbs_MouseClick(object sender, MouseEventArgs e)
@@ -1055,11 +1177,19 @@ namespace ImageGallery
             if (e.Button == MouseButtons.Right)
             {
                 var numSelected = ilvThumbs.SelectedItems.Count;
+                if (numSelected == 0)
+                {
+                    return;
+                }
                 if (numSelected != 1)
                 {
                     CopyImageButton.Enabled = false;
+                    editTagsToolStripMenuItem.Enabled = false;
+                    GalleryRightClick.Show(this, new Point(e.X + ilvThumbs.Left, e.Y + ilvThumbs.Top));
                     return;
                 }
+                editTagsToolStripMenuItem.Enabled = true;
+
                 File file = (File)ilvThumbs.SelectedItems[0].VirtualItemKey;
                 if (!Helpers.IsImageFile(file.FullName))
                 {
@@ -1069,6 +1199,8 @@ namespace ImageGallery
                 {
                     CopyImageButton.Enabled = true;
                 }
+                GalleryRightClick.Show(this, new Point(e.X + ilvThumbs.Left, e.Y + ilvThumbs.Top));
+
             }
         }
 
@@ -1082,8 +1214,36 @@ namespace ImageGallery
             File file = (File)ilvThumbs.SelectedItems[0].VirtualItemKey;
             CopySingleToClipboard(file, false);
         }
+
+        private void editTagsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var numSelected = ilvThumbs.SelectedItems.Count;
+            if (numSelected != 1)
+            {
+                return;
+            }
+            File file = ilvThumbs.SelectedItems[0].VirtualItemKey as File;
+            var editTagsForm = new EditTagsForm(file);
+            editTagsForm.ShowDialog();
+            Refresh();
+        }
+
+        private void addTagsButton_Click(object sender, EventArgs e)
+        {
+            var numSelected = ilvThumbs.SelectedItems.Count;
+            if (numSelected == 0)
+            {
+                return;
+            }
+            List<File> selectedFiles = ilvThumbs.SelectedItems.Select(item => item.VirtualItemKey as File).ToList();
+            var addTagsForm = new AddTagsForm(selectedFiles);
+            addTagsForm.ShowDialog();
+            Refresh();
+
+        }
     }
-    
+
+
 
 
 }

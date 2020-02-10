@@ -36,6 +36,8 @@
             this.WatcherExtensions = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.RemoveButton = new System.Windows.Forms.Button();
             this.LastErrorButton = new System.Windows.Forms.Button();
+            this.Subdirs = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.VidThumbs = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.SuspendLayout();
             // 
             // AddButton
@@ -54,7 +56,9 @@
             this.WatcherName,
             this.WatcherEnabled,
             this.WatcherDirectory,
-            this.WatcherExtensions});
+            this.WatcherExtensions,
+            this.Subdirs,
+            this.VidThumbs});
             this.watcherListView.FullRowSelect = true;
             this.watcherListView.HideSelection = false;
             this.watcherListView.Location = new System.Drawing.Point(12, 12);
@@ -69,21 +73,25 @@
             // 
             // WatcherName
             // 
+            this.WatcherName.DisplayIndex = 0;
             this.WatcherName.Text = "Name";
             this.WatcherName.Width = 106;
             // 
             // WatcherEnabled
             // 
+            this.WatcherEnabled.DisplayIndex = 1;
             this.WatcherEnabled.Text = "Enabled";
             this.WatcherEnabled.Width = 51;
             // 
             // WatcherDirectory
             // 
+            this.WatcherDirectory.DisplayIndex = 2;
             this.WatcherDirectory.Text = "Directory";
             this.WatcherDirectory.Width = 300;
             // 
             // WatcherExtensions
             // 
+            this.WatcherExtensions.DisplayIndex = 3;
             this.WatcherExtensions.Text = "Allowed Extensions";
             this.WatcherExtensions.Width = 163;
             // 
@@ -106,6 +114,14 @@
             this.LastErrorButton.Text = "Last Error";
             this.LastErrorButton.UseVisualStyleBackColor = true;
             this.LastErrorButton.Click += new System.EventHandler(this.LastErrorButton_Click);
+            // 
+            // Subdirs
+            // 
+            this.Subdirs.Text = "Scan Subdirs.";
+            // 
+            // VidThumbs
+            // 
+            this.VidThumbs.Text = "Vid Thumbs.";
             // 
             // WatcherListForm
             // 
@@ -134,5 +150,7 @@
         private System.Windows.Forms.ColumnHeader WatcherEnabled;
         private System.Windows.Forms.Button RemoveButton;
         private System.Windows.Forms.Button LastErrorButton;
+        private System.Windows.Forms.ColumnHeader Subdirs;
+        private System.Windows.Forms.ColumnHeader VidThumbs;
     }
 }

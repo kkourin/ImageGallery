@@ -9,10 +9,12 @@ using Microsoft.EntityFrameworkCore;
 namespace ImageGallery
 {
     using Database;
+    using LibVLCSharp.Shared;
     using System.Threading;
 
     static class Program
     {
+
 #if DEBUG
         static Mutex mutex = new Mutex(true, "{79e2b92a-1b4d-4c63-afd1-086dd4ca20d7}");
 #else
@@ -23,6 +25,7 @@ namespace ImageGallery
 
             var config = new DatabaseConfig();
             FilesContext.Config = config;
+            FilesContext.videoThumbnailExtractor = new VideoThumbnailExtractor();
             using (var ctx = new FilesContext())
             {
                 ctx.Database.Migrate();
@@ -40,11 +43,14 @@ namespace ImageGallery
             {
                 try
                 {
+                    Core.Initialize();
+
                     InitDatabase();
                     var monitor = WatcherMonitor.InitMonitorFromDB();
+                    var libVLC = new LibVLC();
                     Application.EnableVisualStyles();
                     Application.SetCompatibleTextRenderingDefault(false);
-                    Application.Run(new MainForm(monitor));
+                    Application.Run(new MainForm(monitor, libVLC));
                 }
                 finally
                 {

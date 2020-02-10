@@ -12,9 +12,12 @@ using Cyotek.Windows.Forms;
 namespace ImageGallery
 {
     using Database.Models;
+    using LibVLCSharp.Shared;
+
     public partial class PopoutPreview : Form
     {
         private Image previewImage;
+        private LibVLC _libVLC;
 
         protected override bool ShowWithoutActivation
         {
@@ -57,10 +60,32 @@ namespace ImageGallery
             }
             poppedPreviewBox.Zoom = 100;
         }
-        public PopoutPreview()
+        public PopoutPreview(LibVLC libVLC)
         {
             InitializeComponent();
             Helpers.DisableFormTransition(Handle);
+            _libVLC = libVLC;
+            videoView.LibVLC = _libVLC;
+        }
+
+        public void setMediaPlayer(MediaPlayer mediaPlayer)
+        {
+            videoView.SetPlayer(mediaPlayer);
+        }
+
+        public void stopMediaPlayer()
+        {
+            videoView.stopVideoViewSafe();
+        }
+
+        public void SetVideoPlayerVisible(bool visible)
+        {
+            videoView.setVideoViewVisibleSafe(visible);
+        }
+
+        public void SetMediaPlayerMedia(File file)
+        {
+            videoView.setMediaFromFile(file);
         }
 
         private void PopoutPreview_FormClosing(object sender, FormClosingEventArgs e)
