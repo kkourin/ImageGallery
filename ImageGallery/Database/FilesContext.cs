@@ -38,17 +38,15 @@ namespace ImageGallery.Database
             optionsBuilder.UseSqlite("Data Source=" + config.DatabasePath);
         }
 
-        public int UpdateFilesTags(List<File> editedFiles, ObservableHashSet<string> newTags)
+        public int UpdateFilesTags(List<File> editedFiles)
         {
-            HashSet<int> editedFileIds = editedFiles.Select(file => file.Id).ToHashSet();
-            var files = Files.Where(file => editedFileIds.Contains(file.Id));
+            Dictionary<int, File> editedFileDict = editedFiles.ToDictionary(file => file.Id, file => file);
+            HashSet<int> ids = editedFileDict.Keys.ToHashSet();
+            var files = Files.Where(file => ids.Contains(file.Id));
             int count = 0;
             foreach (var file in files)
             {
-                // Unforunately union changes are not tracked...
-                var tempHash = new ObservableHashSet<string>(file.Custom_fts);
-                tempHash.UnionWith(newTags);
-                file.Custom_fts = tempHash;
+                file.Custom_fts = editedFileDict[file.Id].Custom_fts;
                 ++count;
             }
             SaveChanges();

@@ -432,6 +432,11 @@ namespace ImageGallery
             popoutPreview.FileInfoPanel.Items = items;
         }
 
+        void RefreshInfoPanel()
+        {
+            SetInfoPanel(ilvThumbs.SelectedItems);
+        }
+
         void SetInfoPanelLoading(bool loading)
         {
             fileInfoPanel.Loading = loading;
@@ -449,11 +454,11 @@ namespace ImageGallery
             RefreshPreview();
         }
 
+
         private void RefreshPreview()
         {
-            Console.WriteLine("test");
+            RefreshInfoPanel();
             var numSelected = ilvThumbs.SelectedItems.Count;
-            SetInfoPanel(ilvThumbs.SelectedItems);
 
             if (numSelected != 1)
             {
@@ -1225,7 +1230,7 @@ namespace ImageGallery
             File file = ilvThumbs.SelectedItems[0].VirtualItemKey as File;
             var editTagsForm = new EditTagsForm(file);
             editTagsForm.ShowDialog();
-            Refresh();
+            RefreshInfoPanel();
         }
 
         private void addTagsButton_Click(object sender, EventArgs e)
@@ -1238,8 +1243,7 @@ namespace ImageGallery
             List<File> selectedFiles = ilvThumbs.SelectedItems.Select(item => item.VirtualItemKey as File).ToList();
             var addTagsForm = new AddTagsForm(selectedFiles);
             addTagsForm.ShowDialog();
-            Refresh();
-
+            RefreshInfoPanel();
         }
     }
 

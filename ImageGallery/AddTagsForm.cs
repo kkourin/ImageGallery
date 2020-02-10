@@ -37,9 +37,13 @@ namespace ImageGallery
             }
             var newTags = Helpers.TagStringToHash(tags);
             int count = 0;
+            foreach (var file in EditedFiles)
+            {
+                file.Custom_fts.UnionWith(newTags);
+            }
             using (var ctx = new FilesContext())
             {
-                count = ctx.UpdateFilesTags(EditedFiles, newTags);
+                count = ctx.UpdateFilesTags(EditedFiles);
             }
             MessageBox.Show(
                 $"Updated {count} file(s).",
