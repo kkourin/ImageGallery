@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace ImageGallery
 {
@@ -141,7 +142,7 @@ namespace ImageGallery
             }
         }
 
-        private const int DrainMillisecondsTimeout = 50;
+        private const int DrainMillisecondsTimeout = 125;
         public MediaPlayer MediaPlayer;
 
         BlockingCollection<KeyValuePair<int, Action<MediaPlayer>>> _bc;
@@ -185,14 +186,13 @@ namespace ImageGallery
             {
                 cts.Cancel();
             }
+
             while (!_closeWaitHandle.WaitOne(DrainMillisecondsTimeout))
             {
-                // I dislike this solution but I don't know any other safe
-                // way of draining the queue while blocking on this thread
-                // since some drained events may raise events on this thread
-                // which need to be handled.
-
+                Console.WriteLine("doin");
+                Application.DoEvents();
             }
+            Console.WriteLine("finished");
         }
 
         private void AddLowPriority(Action<MediaPlayer> command)

@@ -59,6 +59,7 @@
             this.MinimizedIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.TrayContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.TrayExitButton = new System.Windows.Forms.ToolStripMenuItem();
+            this.settingsButton = new System.Windows.Forms.ToolStripButton();
             this.GalleryRightClick.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.previewBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -210,7 +211,8 @@
             this.sortButton,
             this.WatcherDropDown,
             this.ShowAllButton,
-            this.PopoutPreviewButton});
+            this.PopoutPreviewButton,
+            this.settingsButton});
             this.MainToolStrip.Location = new System.Drawing.Point(0, 0);
             this.MainToolStrip.Name = "MainToolStrip";
             this.MainToolStrip.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
@@ -355,14 +357,24 @@
             this.TrayContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.TrayExitButton});
             this.TrayContextMenu.Name = "TrayContextMenu";
-            this.TrayContextMenu.Size = new System.Drawing.Size(93, 26);
+            this.TrayContextMenu.Size = new System.Drawing.Size(94, 26);
             // 
             // TrayExitButton
             // 
             this.TrayExitButton.Name = "TrayExitButton";
-            this.TrayExitButton.Size = new System.Drawing.Size(92, 22);
+            this.TrayExitButton.Size = new System.Drawing.Size(93, 22);
             this.TrayExitButton.Text = "Exit";
             this.TrayExitButton.Click += new System.EventHandler(this.TrayExitButton_Click);
+            // 
+            // settingsButton
+            // 
+            this.settingsButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.settingsButton.Image = ((System.Drawing.Image)(resources.GetObject("settingsButton.Image")));
+            this.settingsButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.settingsButton.Name = "settingsButton";
+            this.settingsButton.Size = new System.Drawing.Size(53, 22);
+            this.settingsButton.Text = "Settings";
+            this.settingsButton.Click += new System.EventHandler(this.settingsButton_Click);
             // 
             // MainForm
             // 
@@ -372,7 +384,6 @@
             this.Controls.Add(this.splitContainer1);
             this.KeyPreview = true;
             this.Name = "MainForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "Image Gallery";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
@@ -425,6 +436,7 @@
         private VideoControl mainVideoView;
         private System.Windows.Forms.ToolStripMenuItem editTagsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem addTagsButton;
+        private System.Windows.Forms.ToolStripButton settingsButton;
     }
 }
 

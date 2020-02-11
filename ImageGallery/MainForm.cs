@@ -34,8 +34,6 @@ namespace ImageGallery
 
         private const int InitSearchResultSize = 50;
         private int SearchResultSize = InitSearchResultSize;
-        private const int InitDefaultSearchSize = 10;
-        private int DefaultSearchSize = InitDefaultSearchSize;
         CancellationTokenSource previewCts = new CancellationTokenSource();
         CancellationTokenSource searchCts = new CancellationTokenSource();
         private ToolStripMenuItem ManageWatchersButton;
@@ -58,8 +56,8 @@ namespace ImageGallery
 
             _libVLC = libVLC;
             _mediaPlayer = new MediaPlayer(libVLC);
+            _mediaPlayer.EnableHardwareDecoding = true;
             mainVideoView.LibVLC = _libVLC;
-            //mainVideoView.SetPlayer(_mediaPlayer);
 
             WatcherDropDown.DropDown.Closing += WatcherDropDown_Closing;
             Helpers.DisableFormTransition(Handle);
@@ -347,22 +345,35 @@ namespace ImageGallery
             using (var ctx = new FilesContext())
             {
 
+
+
+                var settings = Properties.Settings.Default;
                 // Recently Created
-                var modifiedModels = (from file in ctx.Files.AsNoTracking()
-                                      where activeWatchers.Contains(file.WatcherId)
-                                      orderby file.LastChangeTime descending
-                                      select MakeListViewItem(file, "Recently Created"));
-                var LastUsemodels = from file in ctx.Files.AsNoTracking()
-                                    where activeWatchers.Contains(file.WatcherId)
-                                    orderby file.LastUseTime descending
-                                    select MakeListViewItem(file, "Recently Used");
-                var frequentModels = from file in ctx.Files.AsNoTracking()
-                                     where activeWatchers.Contains(file.WatcherId)
-                                     orderby file.TimesAccessed descending
-                                     select MakeListViewItem(file, "Frequently Used");
-                items.AddRange(modifiedModels.Take(DefaultSearchSize));
-                items.AddRange(LastUsemodels.Take(DefaultSearchSize));
-                items.AddRange(frequentModels.Take(DefaultSearchSize));
+                if (settings.ShowRecentlyCreated)
+                {
+                    var modifiedModels = (from file in ctx.Files.AsNoTracking()
+                                          where activeWatchers.Contains(file.WatcherId)
+                                          orderby file.LastChangeTime descending
+                                          select MakeListViewItem(file, "Recently Created"));
+                    items.AddRange(modifiedModels.Take(settings.RecentlyCreatedCount));
+                }
+                if (settings.ShowRecentlyUsed)
+                {
+                    var LastUsemodels = from file in ctx.Files.AsNoTracking()
+                                        where activeWatchers.Contains(file.WatcherId)
+                                        orderby file.LastUseTime descending
+                                        select MakeListViewItem(file, "Recently Used");
+                    items.AddRange(LastUsemodels.Take(settings.RecentlyUsedCount));
+                }
+                if (settings.ShowFrequentlyClicked)
+                {
+                    var frequentModels = from file in ctx.Files.AsNoTracking()
+                                         where activeWatchers.Contains(file.WatcherId)
+                                         orderby file.TimesAccessed descending
+                                         select MakeListViewItem(file, "Frequently Used");
+                    items.AddRange(frequentModels.Take(settings.FrequentlyClickedCount));
+                }
+
             }
             ilvThumbs.Items.AddRange(items.ToArray(), Adaptor);
             ilvThumbs.Sort();
@@ -801,9 +812,24 @@ namespace ImageGallery
 
         private void MainForm_KeyDown(object sender, KeyEventArgs e)
         {
+            Console.WriteLine(e.KeyCode.ToString());
             if ((e.KeyCode == Keys.Enter || e.KeyCode == Keys.Return) && e.Modifiers == Keys.None)
             {
                 CopyToClipboard(ilvThumbs.SelectedItems.Select(t => (File)t.VirtualItemKey).ToList(), true);
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                return;
+            }
+            if (e.KeyCode == Keys.O && e.Modifiers == Keys.Control)
+            {
+                OpenButton.PerformClick();
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                return;
+            }
+            if (e.KeyCode == Keys.L && e.Modifiers == Keys.Control)
+            {
+                openFolderToolStripMenuItem.PerformClick();
                 e.Handled = true;
                 e.SuppressKeyPress = true;
                 return;
@@ -870,11 +896,13 @@ namespace ImageGallery
             {
                 e.SuppressKeyPress = true;
             }
+            /*
             if (e.KeyCode == Keys.O && e.Modifiers == Keys.Control)
             {
                 OpenButton.PerformClick();
                 e.SuppressKeyPress = true;
             }
+            */
 
         }
 
@@ -1244,6 +1272,16 @@ namespace ImageGallery
             var addTagsForm = new AddTagsForm(selectedFiles);
             addTagsForm.ShowDialog();
             RefreshInfoPanel();
+        }
+
+        private void settingsButton_Click(object sender, EventArgs e)
+        {
+            var settingsForm = new SettingsForm();
+            settingsForm.ShowDialog();
+            if (searchTextBox.Text.Length == 0)
+            {
+                RefreshView();
+            }
         }
     }
 

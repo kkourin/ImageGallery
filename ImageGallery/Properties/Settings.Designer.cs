@@ -178,5 +178,77 @@ namespace ImageGallery.Properties {
                 this["SortColumn"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowFrequentlyClicked {
+            get {
+                return ((bool)(this["ShowFrequentlyClicked"]));
+            }
+            set {
+                this["ShowFrequentlyClicked"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowRecentlyUsed {
+            get {
+                return ((bool)(this["ShowRecentlyUsed"]));
+            }
+            set {
+                this["ShowRecentlyUsed"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowRecentlyCreated {
+            get {
+                return ((bool)(this["ShowRecentlyCreated"]));
+            }
+            set {
+                this["ShowRecentlyCreated"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("10")]
+        public int RecentlyCreatedCount {
+            get {
+                return ((int)(this["RecentlyCreatedCount"]));
+            }
+            set {
+                this["RecentlyCreatedCount"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("10")]
+        public int RecentlyUsedCount {
+            get {
+                return ((int)(this["RecentlyUsedCount"]));
+            }
+            set {
+                this["RecentlyUsedCount"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("10")]
+        public int FrequentlyClickedCount {
+            get {
+                return ((int)(this["FrequentlyClickedCount"]));
+            }
+            set {
+                this["FrequentlyClickedCount"] = value;
+            }
+        }
     }
 }

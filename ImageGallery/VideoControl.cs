@@ -74,8 +74,13 @@ namespace ImageGallery
         }
         private void SetButtonStateSafe(ButtonState state)
         {
+
             if (playButton.InvokeRequired)
             {
+                if (_closingPlayer)
+                {
+                    return;
+                }
                 var d = new setButtonDelegate(SetButtonStateSafe);
                 playButton.Invoke(d, new object[] { state });
             }
@@ -105,6 +110,10 @@ namespace ImageGallery
         {
             if (playButton.InvokeRequired)
             {
+                if (_closingPlayer)
+                {
+                    return;
+                }
                 var d = new setPlayLabelDelegate(SetPlayLabelVisibleSafe);
                 playLabel.Invoke(d, new object[] { visible });
             }
@@ -181,10 +190,15 @@ namespace ImageGallery
 
         private void UpdateCurrentMediaInfoSafe(long time)
         {
-            if (timeLabel.InvokeRequired && !_closingPlayer)
+
+            if (timeLabel.InvokeRequired)
             {
-                var d = new updateCurrentMediaInfoDelegate(UpdateCurrentMediaInfo);
-                timeLabel.Invoke(d, new object[] { time });
+                if (_closingPlayer)
+                {
+                    return;
+                }
+                var d = new updateCurrentMediaInfoDelegate(UpdateCurrentMediaInfoSafe);
+                this.Invoke(d, new object[] { time });
             }
             else
             {
@@ -195,10 +209,12 @@ namespace ImageGallery
 
         private void UpdateVolumeSafe(float volume)
         {
-            Console.WriteLine($"volume change {volume}");
-            if (volumeBar.InvokeRequired && !_closingPlayer)
+            if (volumeBar.InvokeRequired)
             {
-
+                if (_closingPlayer)
+                {
+                    return;
+                }
                 var d = new updateVolumeDelegate(UpdateVolumeSafe);
 
                 volumeBar.Invoke(d, new object[] { volume });
@@ -206,7 +222,6 @@ namespace ImageGallery
             }
             else
             {
-                Console.WriteLine("Changed volume2");
 
                 // This prevents the player's volume change event from triggering this event and causeing
                 // a feedback loop.
@@ -271,25 +286,24 @@ namespace ImageGallery
                 return;
             }
             UpdateCurrentMediaInfoSafe(e.Time);
+
         }
 
         private void _mp_VolumeChanged(object sender, MediaPlayerVolumeChangedEventArgs e) {
 
-
-                        Console.WriteLine("Changed volume");
-
             UpdateVolumeSafe(e.Volume);
 
-            Console.WriteLine("Changed volume");
         }
 
         private void _mp_Playing(object sender, EventArgs e)
         {
+
             if (playTriggered)
             {
                 SetButtonStateSafe(ButtonState.Pause);
                 SetPlayLabelVisibleSafe(false);
             }
+
         }
 
         private void _mp_Paused(object sender, EventArgs e)
@@ -299,6 +313,7 @@ namespace ImageGallery
                 SetButtonStateSafe(ButtonState.Unpause);
 
             }
+
         }
 
         public VideoControl()
@@ -309,6 +324,7 @@ namespace ImageGallery
 
         private void _mp_EndReached(object sender, EventArgs e)
         {
+
             if (Queue == null || !playTriggered)
             {
                 return;
@@ -337,8 +353,6 @@ namespace ImageGallery
             {
                 return;
             }
-            //Console.WriteLine(_mp.Time);
-            //Console.WriteLine(_mp.State.ToString());
             if (!playTriggered)
             {
                 Queue.PlayerStop();
