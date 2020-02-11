@@ -53,13 +53,14 @@
             this.WatcherDropDown = new System.Windows.Forms.ToolStripDropDownButton();
             this.ShowAllButton = new System.Windows.Forms.ToolStripButton();
             this.PopoutPreviewButton = new System.Windows.Forms.ToolStripButton();
+            this.settingsButton = new System.Windows.Forms.ToolStripButton();
+            this.shutdownButton = new System.Windows.Forms.ToolStripButton();
             this.mainVideoView = new ImageGallery.VideoControl();
             this.fileInfoPanel = new ImageGallery.FileInfoPanel();
             this.NameToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.MinimizedIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.TrayContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.TrayExitButton = new System.Windows.Forms.ToolStripMenuItem();
-            this.settingsButton = new System.Windows.Forms.ToolStripButton();
             this.GalleryRightClick.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.previewBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -212,7 +213,8 @@
             this.WatcherDropDown,
             this.ShowAllButton,
             this.PopoutPreviewButton,
-            this.settingsButton});
+            this.settingsButton,
+            this.shutdownButton});
             this.MainToolStrip.Location = new System.Drawing.Point(0, 0);
             this.MainToolStrip.Name = "MainToolStrip";
             this.MainToolStrip.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
@@ -235,11 +237,11 @@
             // 
             // RefreshButton
             // 
-            this.RefreshButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.RefreshButton.Image = ((System.Drawing.Image)(resources.GetObject("RefreshButton.Image")));
+            this.RefreshButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.RefreshButton.Image = global::ImageGallery.Properties.Resources.refresh;
             this.RefreshButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.RefreshButton.Name = "RefreshButton";
-            this.RefreshButton.Size = new System.Drawing.Size(50, 22);
+            this.RefreshButton.Size = new System.Drawing.Size(23, 22);
             this.RefreshButton.Text = "Refresh";
             this.RefreshButton.Click += new System.EventHandler(this.RefreshButton_Click);
             // 
@@ -260,7 +262,7 @@
             // CreatedOrder
             // 
             this.CreatedOrder.Name = "CreatedOrder";
-            this.CreatedOrder.Size = new System.Drawing.Size(151, 22);
+            this.CreatedOrder.Size = new System.Drawing.Size(180, 22);
             this.CreatedOrder.Tag = "DateChanged";
             this.CreatedOrder.Text = "Date Modified";
             this.CreatedOrder.Click += new System.EventHandler(this.CreatedOrder_Click);
@@ -268,7 +270,7 @@
             // NameOrder
             // 
             this.NameOrder.Name = "NameOrder";
-            this.NameOrder.Size = new System.Drawing.Size(151, 22);
+            this.NameOrder.Size = new System.Drawing.Size(180, 22);
             this.NameOrder.Tag = "Name";
             this.NameOrder.Text = "Name";
             this.NameOrder.Click += new System.EventHandler(this.NameOrder_Click);
@@ -276,7 +278,7 @@
             // UsedOrder
             // 
             this.UsedOrder.Name = "UsedOrder";
-            this.UsedOrder.Size = new System.Drawing.Size(151, 22);
+            this.UsedOrder.Size = new System.Drawing.Size(180, 22);
             this.UsedOrder.Tag = "DateAccessed";
             this.UsedOrder.Text = "Date Last Used";
             this.UsedOrder.Click += new System.EventHandler(this.usedOrder_Click);
@@ -284,7 +286,7 @@
             // TimesUsedOrder
             // 
             this.TimesUsedOrder.Name = "TimesUsedOrder";
-            this.TimesUsedOrder.Size = new System.Drawing.Size(151, 22);
+            this.TimesUsedOrder.Size = new System.Drawing.Size(180, 22);
             this.TimesUsedOrder.Tag = "TimesAccessed";
             this.TimesUsedOrder.Text = "Times Used";
             this.TimesUsedOrder.Click += new System.EventHandler(this.TimesUsedOrder_Click);
@@ -320,6 +322,26 @@
             this.PopoutPreviewButton.Text = "Popout";
             this.PopoutPreviewButton.CheckedChanged += new System.EventHandler(this.PopoutPreviewButton_CheckedChanged);
             this.PopoutPreviewButton.Click += new System.EventHandler(this.PopoutPreviewButton_Click);
+            // 
+            // settingsButton
+            // 
+            this.settingsButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.settingsButton.Image = ((System.Drawing.Image)(resources.GetObject("settingsButton.Image")));
+            this.settingsButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.settingsButton.Name = "settingsButton";
+            this.settingsButton.Size = new System.Drawing.Size(53, 22);
+            this.settingsButton.Text = "Settings";
+            this.settingsButton.Click += new System.EventHandler(this.settingsButton_Click);
+            // 
+            // shutdownButton
+            // 
+            this.shutdownButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.shutdownButton.Image = ((System.Drawing.Image)(resources.GetObject("shutdownButton.Image")));
+            this.shutdownButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.shutdownButton.Name = "shutdownButton";
+            this.shutdownButton.Size = new System.Drawing.Size(65, 22);
+            this.shutdownButton.Text = "Shutdown";
+            this.shutdownButton.Click += new System.EventHandler(this.shutdownButton_Click);
             // 
             // mainVideoView
             // 
@@ -365,16 +387,6 @@
             this.TrayExitButton.Size = new System.Drawing.Size(93, 22);
             this.TrayExitButton.Text = "Exit";
             this.TrayExitButton.Click += new System.EventHandler(this.TrayExitButton_Click);
-            // 
-            // settingsButton
-            // 
-            this.settingsButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.settingsButton.Image = ((System.Drawing.Image)(resources.GetObject("settingsButton.Image")));
-            this.settingsButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.settingsButton.Name = "settingsButton";
-            this.settingsButton.Size = new System.Drawing.Size(53, 22);
-            this.settingsButton.Text = "Settings";
-            this.settingsButton.Click += new System.EventHandler(this.settingsButton_Click);
             // 
             // MainForm
             // 
@@ -437,6 +449,7 @@
         private System.Windows.Forms.ToolStripMenuItem editTagsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem addTagsButton;
         private System.Windows.Forms.ToolStripButton settingsButton;
+        private System.Windows.Forms.ToolStripButton shutdownButton;
     }
 }
 

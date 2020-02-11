@@ -15,11 +15,19 @@ namespace ImageGallery
     public partial class WatcherListForm : Form
     {
         WatcherMonitor Monitor { get; set; }
-        public WatcherListForm(WatcherMonitor monitor)
+        WatcherKeyManager _watcherKeyManager;
+        readonly static KeysConverter _keysConverter;
+        public WatcherListForm(WatcherMonitor monitor, WatcherKeyManager watcherKeyManager)
         {
             InitializeComponent();
             Monitor = monitor;
+            _watcherKeyManager = watcherKeyManager;
             RefreshListView();
+        }
+
+        static WatcherListForm()
+        {
+            _keysConverter = new KeysConverter();
         }
         private void RefreshListView()
         {
@@ -35,8 +43,10 @@ namespace ImageGallery
                         watcher.Directory,
                         Watcher.HashToExtensionString(watcher.Whitelist),
                         watcher.ScanSubdirectories.ToString(),
-                        watcher.GenerateVideoThumbnails.ToString()
-                    });
+                        watcher.GenerateVideoThumbnails.ToString(),
+                        watcher.ShortcutKeys == Keys.None ? "None" : _keysConverter.ConvertToString(watcher.ShortcutKeys),
+                        watcher.GlobalShortcut.ToString()
+                    }) ;
                     item.Tag = watcher.Id;
                     watcherList.Add(item);
                 }
@@ -129,6 +139,29 @@ namespace ImageGallery
                 dialogueText = "Error: Watcher not found.";
             }
             MessageBox.Show(dialogueText, "Last Error");
+        }
+
+        private void editButton_Click(object sender, EventArgs e)
+        {
+            if (watcherListView.SelectedItems.Count == 0)
+            {
+                return;
+            }
+            var item = watcherListView.SelectedItems[0];
+            var id = (int)item.Tag;
+            Watcher found = null;
+            using (var ctx = new FilesContext())
+            {
+                found = ctx.Watchers.SingleOrDefault(watcher => watcher.Id == id);
+
+            }
+            if (found == null)
+            {
+                Console.Write($"Could not find watcher with id {id}.");
+                return;
+            }
+            var editWatcherForm = new EditWatcherForm(found, _watcherKeyManager);
+            editWatcherForm.ShowDialog();
         }
     }
 }

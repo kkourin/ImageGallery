@@ -10,6 +10,7 @@ namespace ImageGallery.Database
 {
     using ImageGallery.Database.Models;
     using Microsoft.EntityFrameworkCore.ChangeTracking;
+    using System.Windows.Forms;
 
     class FilesContext : DbContext
     {
@@ -25,6 +26,7 @@ namespace ImageGallery.Database
             TimesAccessed
         }
 
+
         public static DatabaseConfig Config { get; set; }
         public static VideoThumbnailExtractor videoThumbnailExtractor { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -38,20 +40,8 @@ namespace ImageGallery.Database
             optionsBuilder.UseSqlite("Data Source=" + config.DatabasePath);
         }
 
-        public int UpdateFilesTags(List<File> editedFiles)
-        {
-            Dictionary<int, File> editedFileDict = editedFiles.ToDictionary(file => file.Id, file => file);
-            HashSet<int> ids = editedFileDict.Keys.ToHashSet();
-            var files = Files.Where(file => ids.Contains(file.Id));
-            int count = 0;
-            foreach (var file in files)
-            {
-                file.Custom_fts = editedFileDict[file.Id].Custom_fts;
-                ++count;
-            }
-            SaveChanges();
-            return count;
-        }
+
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -139,8 +129,16 @@ namespace ImageGallery.Database
                 .HasConversion(
                     h => Watcher.HashToExtensionString(h),
                     s => Watcher.ExtensionStringToHash(s));
+
+            modelBuilder.Entity<Watcher>()
+                .Property(b => b.ShortcutKeys)
+                .HasConversion(
+                    v => (int)v,
+                    v => (Keys)v);
         }
-        
+
+
+
         public IQueryable<File> Search(string Query, HashSet<int> watchers, SortColumn order)
         {
             var result = from file in
@@ -330,17 +328,7 @@ namespace ImageGallery.Database
             }
         }
 
-        public bool UpdateFileTags(File file)
-        {
-            var foundFile = Files.Find(file.Id);
-            if (foundFile == null)
-            {
-                return false;
-            }
-            foundFile.Custom_fts = file.Custom_fts;
-            SaveChanges();
-            return true;
-        }
+
 
         private void UpdateFileContents(File file, FileInfo fileInfo, Watcher watcher)
         {
@@ -449,15 +437,61 @@ namespace ImageGallery.Database
                 Name = name,
                 Directory = dir,
                 Whitelist = Watcher.ExtensionStringToHash(whitelist),
+                GenerateVideoThumbnails = generateVideoThumbnails,
+                ScanSubdirectories = scanSubdirectories
             };
 
             Watchers.Add(watcher);
-            watcher.GenerateVideoThumbnails = generateVideoThumbnails;
-            watcher.ScanSubdirectories = scanSubdirectories;
             SaveChanges();
             return watcher;
         }
 
+        public bool UpdateFileTags(File file)
+        {
+            var foundFile = Files.Find(file.Id);
+            if (foundFile == null)
+            {
+                return false;
+            }
+            foundFile.Custom_fts = file.Custom_fts;
+            SaveChanges();
+            return true;
+        }
+        public int UpdateFilesTags(List<File> editedFiles)
+        {
+            Dictionary<int, File> editedFileDict = editedFiles.ToDictionary(file => file.Id, file => file);
+            HashSet<int> ids = editedFileDict.Keys.ToHashSet();
+            var files = Files.Where(file => ids.Contains(file.Id));
+            int count = 0;
+            foreach (var file in files)
+            {
+                file.Custom_fts = editedFileDict[file.Id].Custom_fts;
+                ++count;
+            }
+            SaveChanges();
+            return count;
+        }
+
+        public Dictionary<int, (Keys ShortcutKeys, bool GlobalShortcut)> GetWatcherShortcutMap()
+        {
+            var watcherKeyMap = new Dictionary<int, (Keys ShortcutKeys, bool GlobalShortcut)>();
+            foreach (var watcher in Watchers)
+            {
+                watcherKeyMap[watcher.Id] = (watcher.ShortcutKeys, watcher.GlobalShortcut);
+            }
+            return watcherKeyMap;
+        }
+        public void UpdateShortcuts(Watcher watcher, Keys keys, bool global)
+        {
+            var foundWatcher = Watchers.Find(watcher.Id);
+            if (foundWatcher == null)
+            {
+                return;
+            }
+            foundWatcher.ShortcutKeys = keys;
+            foundWatcher.GlobalShortcut = global;
+            SaveChanges();
+        }
     }
 
 }

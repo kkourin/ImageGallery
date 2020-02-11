@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.IO;
-
+using System.Windows.Forms;
 
 namespace ImageGallery.Database.Models
 {
@@ -23,6 +23,9 @@ namespace ImageGallery.Database.Models
         public bool? Enabled { get; set; }
         public bool? GenerateVideoThumbnails { get; set; }
         public bool? ScanSubdirectories { get; set; }
+
+        public Keys ShortcutKeys { get; set; }
+        public bool GlobalShortcut { get; set; }
 
         public List<File> Files { get; set; }
 

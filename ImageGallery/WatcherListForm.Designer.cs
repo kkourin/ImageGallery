@@ -34,10 +34,13 @@
             this.WatcherEnabled = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.WatcherDirectory = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.WatcherExtensions = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.RemoveButton = new System.Windows.Forms.Button();
-            this.LastErrorButton = new System.Windows.Forms.Button();
             this.Subdirs = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.VidThumbs = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.RemoveButton = new System.Windows.Forms.Button();
+            this.LastErrorButton = new System.Windows.Forms.Button();
+            this.editButton = new System.Windows.Forms.Button();
+            this.Hotkey = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.Global = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.SuspendLayout();
             // 
             // AddButton
@@ -58,7 +61,9 @@
             this.WatcherDirectory,
             this.WatcherExtensions,
             this.Subdirs,
-            this.VidThumbs});
+            this.VidThumbs,
+            this.Hotkey,
+            this.Global});
             this.watcherListView.FullRowSelect = true;
             this.watcherListView.HideSelection = false;
             this.watcherListView.Location = new System.Drawing.Point(12, 12);
@@ -73,31 +78,35 @@
             // 
             // WatcherName
             // 
-            this.WatcherName.DisplayIndex = 0;
             this.WatcherName.Text = "Name";
             this.WatcherName.Width = 106;
             // 
             // WatcherEnabled
             // 
-            this.WatcherEnabled.DisplayIndex = 1;
             this.WatcherEnabled.Text = "Enabled";
             this.WatcherEnabled.Width = 51;
             // 
             // WatcherDirectory
             // 
-            this.WatcherDirectory.DisplayIndex = 2;
             this.WatcherDirectory.Text = "Directory";
             this.WatcherDirectory.Width = 300;
             // 
             // WatcherExtensions
             // 
-            this.WatcherExtensions.DisplayIndex = 3;
             this.WatcherExtensions.Text = "Allowed Extensions";
             this.WatcherExtensions.Width = 163;
             // 
+            // Subdirs
+            // 
+            this.Subdirs.Text = "Scan Subdirs.";
+            // 
+            // VidThumbs
+            // 
+            this.VidThumbs.Text = "Vid Thumbs.";
+            // 
             // RemoveButton
             // 
-            this.RemoveButton.Location = new System.Drawing.Point(93, 383);
+            this.RemoveButton.Location = new System.Drawing.Point(174, 383);
             this.RemoveButton.Name = "RemoveButton";
             this.RemoveButton.Size = new System.Drawing.Size(75, 23);
             this.RemoveButton.TabIndex = 2;
@@ -115,19 +124,30 @@
             this.LastErrorButton.UseVisualStyleBackColor = true;
             this.LastErrorButton.Click += new System.EventHandler(this.LastErrorButton_Click);
             // 
-            // Subdirs
+            // editButton
             // 
-            this.Subdirs.Text = "Scan Subdirs.";
+            this.editButton.Location = new System.Drawing.Point(93, 383);
+            this.editButton.Name = "editButton";
+            this.editButton.Size = new System.Drawing.Size(75, 23);
+            this.editButton.TabIndex = 4;
+            this.editButton.Text = "Edit";
+            this.editButton.UseVisualStyleBackColor = true;
+            this.editButton.Click += new System.EventHandler(this.editButton_Click);
             // 
-            // VidThumbs
+            // Hotkey
             // 
-            this.VidThumbs.Text = "Vid Thumbs.";
+            this.Hotkey.Text = "Hotkey";
+            // 
+            // Global
+            // 
+            this.Global.Text = "GlobalHotkey";
             // 
             // WatcherListForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(648, 428);
+            this.Controls.Add(this.editButton);
             this.Controls.Add(this.LastErrorButton);
             this.Controls.Add(this.RemoveButton);
             this.Controls.Add(this.watcherListView);
@@ -152,5 +172,8 @@
         private System.Windows.Forms.Button LastErrorButton;
         private System.Windows.Forms.ColumnHeader Subdirs;
         private System.Windows.Forms.ColumnHeader VidThumbs;
+        private System.Windows.Forms.Button editButton;
+        private System.Windows.Forms.ColumnHeader Hotkey;
+        private System.Windows.Forms.ColumnHeader Global;
     }
 }

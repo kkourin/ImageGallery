@@ -44,6 +44,7 @@ namespace ImageGallery
         private LibVLC _libVLC;
         private MediaPlayer _mediaPlayer;
 
+        private WatcherKeyManager _watcherKeyManager;
 
         static MainForm()
         {
@@ -70,7 +71,10 @@ namespace ImageGallery
             MinimizedIcon.Icon = Properties.Resources.TrayIcon;
 
             // Add hotkeys
-            AddHotkeys();            
+            AddHotkeys();
+
+            _watcherKeyManager = new WatcherKeyManager(this);
+
             // Fill fields
             Monitor = monitor;
             ManageWatchersButton = new ToolStripMenuItem("Manage Watchers", null, ManageWatchersButton_onClick);
@@ -198,7 +202,7 @@ namespace ImageGallery
         private void ManageWatchersButton_onClick(object sender, EventArgs e)
         {
             WatcherDropDown.DropDown.Close();
-            var watcherListForm = new WatcherListForm(Monitor);
+            var watcherListForm = new WatcherListForm(Monitor, _watcherKeyManager);
             watcherListForm.ShowDialog();
             RefreshWatchers();
             RefreshView();
@@ -211,6 +215,7 @@ namespace ImageGallery
 
         private void RefreshView()
         {
+            Console.WriteLine(GetActiveWatcherIds().Count);
             ilvThumbs.Items.Clear();
             if (!searchTextBox.Text.Any())
             {
@@ -773,13 +778,7 @@ namespace ImageGallery
             }
         }
 
-        private void watchersButton_Click_1(object sender, EventArgs e)
-        {
-            var watcherListForm = new WatcherListForm(Monitor);
-            watcherListForm.ShowDialog();
-            RefreshWatchers();
-            RefreshView();
-        }
+
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -812,7 +811,6 @@ namespace ImageGallery
 
         private void MainForm_KeyDown(object sender, KeyEventArgs e)
         {
-            Console.WriteLine(e.KeyCode.ToString());
             if ((e.KeyCode == Keys.Enter || e.KeyCode == Keys.Return) && e.Modifiers == Keys.None)
             {
                 CopyToClipboard(ilvThumbs.SelectedItems.Select(t => (File)t.VirtualItemKey).ToList(), true);
@@ -1017,12 +1015,23 @@ namespace ImageGallery
         private void SetActiveIdsFromConfigString(string idsConfigString)
         {
             HashSet<int> ids = idsConfigString.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(Int32.Parse).ToHashSet();
+            SetActiveIdsFromSet(ids);
+        }
+
+        public void SetActiveIdsFromSet(HashSet<int> ids, bool restore = false)
+        {
             foreach (var item in WatcherDropDown.DropDownItems)
             {
-                if (IsWatcherToolStripButton(item) && ids.Contains(GetWatcherIdFromToolStripObject(item)))
+                if (IsWatcherToolStripButton(item))
                 {
-                    ((ToolStripMenuItem)item).Checked = true;
+                    Console.WriteLine(GetWatcherIdFromToolStripObject(item));
+                    ((ToolStripMenuItem)item).Checked = ids.Contains(GetWatcherIdFromToolStripObject(item));
                 }
+            }
+            if (restore)
+            {
+                RefreshView();
+                Restore();
             }
         }
 
@@ -1283,9 +1292,23 @@ namespace ImageGallery
                 RefreshView();
             }
         }
+
+        private void shutdownButton_Click(object sender, EventArgs e)
+        {
+            DialogResult dialogResult = MessageBox.Show(
+                "This shuts down the application so that you will need to manually restart it. Are you sure?",
+                "Shutdown Confirmation",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Exclamation
+            );
+            if (dialogResult == DialogResult.No)
+            {
+                return;
+            } else
+            {
+                Application.Exit();
+            }
+        }
     }
-
-
-
 
 }
