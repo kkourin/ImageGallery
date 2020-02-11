@@ -162,6 +162,7 @@ namespace ImageGallery
             }
             var editWatcherForm = new EditWatcherForm(found, _watcherKeyManager);
             editWatcherForm.ShowDialog();
+            RefreshListView();
         }
     }
 }

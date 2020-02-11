@@ -811,6 +811,10 @@ namespace ImageGallery
 
         private void MainForm_KeyDown(object sender, KeyEventArgs e)
         {
+            if (_watcherKeyManager.HandleKey(e))
+            {
+                return;
+            }
             if ((e.KeyCode == Keys.Enter || e.KeyCode == Keys.Return) && e.Modifiers == Keys.None)
             {
                 CopyToClipboard(ilvThumbs.SelectedItems.Select(t => (File)t.VirtualItemKey).ToList(), true);

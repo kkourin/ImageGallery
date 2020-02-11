@@ -36,11 +36,11 @@
             this.WatcherExtensions = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.Subdirs = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.VidThumbs = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.Hotkey = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.Global = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.RemoveButton = new System.Windows.Forms.Button();
             this.LastErrorButton = new System.Windows.Forms.Button();
             this.editButton = new System.Windows.Forms.Button();
-            this.Hotkey = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.Global = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.SuspendLayout();
             // 
             // AddButton
@@ -104,6 +104,16 @@
             // 
             this.VidThumbs.Text = "Vid Thumbs.";
             // 
+            // Hotkey
+            // 
+            this.Hotkey.Text = "Hotkey";
+            this.Hotkey.Width = 100;
+            // 
+            // Global
+            // 
+            this.Global.Text = "GlobalHotkey";
+            this.Global.Width = 100;
+            // 
             // RemoveButton
             // 
             this.RemoveButton.Location = new System.Drawing.Point(174, 383);
@@ -133,14 +143,6 @@
             this.editButton.Text = "Edit";
             this.editButton.UseVisualStyleBackColor = true;
             this.editButton.Click += new System.EventHandler(this.editButton_Click);
-            // 
-            // Hotkey
-            // 
-            this.Hotkey.Text = "Hotkey";
-            // 
-            // Global
-            // 
-            this.Global.Text = "GlobalHotkey";
             // 
             // WatcherListForm
             // 

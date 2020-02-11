@@ -47,16 +47,23 @@ namespace ImageGallery
         {
             lock (_updateLock)
             {
+                if (_disabled)
+                {
+                    return;
+                }
                 _disabled = true;
-                RemoveAllKeys();
+                RemoveAllGlobalKeys();
             }
         }
 
-        private void RemoveAllKeys()
+        private void RemoveAllGlobalKeys()
         {
             foreach (var kv in _keyWatcherMap)
             {
-                HotkeyManager.Current.Remove(keySlug(kv.Key, _slugPrefix));
+                if (kv.Value.globalIds.Any())
+                {
+                    HotkeyManager.Current.Remove(keySlug(kv.Key, _slugPrefix));
+                }
             }
         }
 
@@ -67,7 +74,7 @@ namespace ImageGallery
                 
                 if (!_disabled)
                 {
-                    RemoveAllKeys();
+                    RemoveAllGlobalKeys();
                 }
 
                 _slugPrefix = Guid.NewGuid();
@@ -100,12 +107,15 @@ namespace ImageGallery
                 foreach (var kv in _keyWatcherMap)
                 {
                     var shortcutKeys = kv.Key;
-                    HotkeyManager.Current.AddOrReplace(
-                        keySlug(shortcutKeys, _slugPrefix),
-                        shortcutKeys,
-                        true,
-                        GlobalHotkeyPressed
-                    );
+                    if (kv.Value.globalIds.Any())
+                    {
+                        HotkeyManager.Current.AddOrReplace(
+                            keySlug(shortcutKeys, _slugPrefix),
+                            shortcutKeys,
+                            true,
+                            GlobalHotkeyPressed
+                        );
+                    }
                 }
                 _disabled = false;
             }
@@ -128,22 +138,29 @@ namespace ImageGallery
                     return;
                 }
 
-                HashSet<int> shownIds;
-                if (_mainForm.ContainsFocus)
+                if (watcherIdPair.globalIds.Any())
                 {
-                    shownIds = watcherIdPair.watcherIds.ToHashSet();
-                } else
-                {
-                    shownIds = watcherIdPair.globalIds;
-                }
-
-                if (shownIds.Any())
-                {
-                    _mainForm.SetActiveIdsFromSet(shownIds, true);
+                    _mainForm.SetActiveIdsFromSet(watcherIdPair.globalIds, true);
                 }
                 e.Handled = true;
             }
 
+        }
+
+        internal bool HandleKey(KeyEventArgs e)
+        {
+            if (!_keyWatcherMap.ContainsKey(e.KeyData))
+            {
+                return false;
+            }
+            (List<int> watcherIds, HashSet<int> globalIds) watcherIdPair = _keyWatcherMap[e.KeyData];
+            if (watcherIdPair.watcherIds.Any())
+            {
+                _mainForm.SetActiveIdsFromSet(watcherIdPair.watcherIds.ToHashSet(), true);
+            }
+            e.Handled = true;
+            e.SuppressKeyPress = true;
+            return true;
         }
     }
 }
