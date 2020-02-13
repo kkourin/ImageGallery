@@ -446,6 +446,20 @@ namespace ImageGallery.Database
             return watcher;
         }
 
+        public void UpdateWatcherForm(int id, string name, string whitelist, bool generateVideoThumbnails, bool scanSubdirectories)
+        {
+            var foundWatcher = Watchers.Find(id);
+            if (foundWatcher == null)
+            {
+                return;
+            }
+            foundWatcher.Name = name;
+            foundWatcher.Whitelist = Watcher.ExtensionStringToHash(whitelist);
+            foundWatcher.GenerateVideoThumbnails = generateVideoThumbnails;
+            foundWatcher.ScanSubdirectories = scanSubdirectories;
+            SaveChanges();
+        }
+
         public bool UpdateFileTags(File file)
         {
             var foundFile = Files.Find(file.Id);

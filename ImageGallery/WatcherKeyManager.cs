@@ -24,7 +24,7 @@ namespace ImageGallery
             _slugPrefix = Guid.NewGuid();
             _watcherKeyMap = new Dictionary<int, (Keys ShortcutKeys, bool GlobalShortcut)>();
             _keyWatcherMap = new Dictionary<Keys, (List<int> watcherIds, HashSet<int> globalIds)>();
-            UpdateData();
+            UpdateDataAndEnable();
         }
 
         private static string keySlug(Keys key, Guid prefix)
@@ -56,6 +56,19 @@ namespace ImageGallery
             }
         }
 
+        public void EnableKeys()
+        {
+            lock (_updateLock)
+            {
+                if (!_disabled)
+                {
+                    return;
+                }
+                AddAllGlobalKeys();
+                _disabled = false;
+            }
+        }
+
         private void RemoveAllGlobalKeys()
         {
             foreach (var kv in _keyWatcherMap)
@@ -67,15 +80,50 @@ namespace ImageGallery
             }
         }
 
-        public void UpdateData()
+        private void AddAllGlobalKeys()
+        {
+            var failedKeys = new List<string>();
+
+            foreach (var kv in _keyWatcherMap)
+            {
+                var shortcutKeys = kv.Key;
+                if (kv.Value.globalIds.Any())
+                {
+                    try
+                    {
+                        HotkeyManager.Current.AddOrReplace(
+                            keySlug(shortcutKeys, _slugPrefix),
+                            shortcutKeys,
+                            true,
+                            GlobalHotkeyPressed
+                        );
+                    } catch (HotkeyAlreadyRegisteredException)
+                    {
+                        failedKeys.Add(new KeysConverter().ConvertToString(kv.Key));
+                    }
+
+                }
+            }
+
+            if (failedKeys.Any())
+            {
+                MessageBox.Show(
+                    $"The following global hotkeys could not be added: {String.Join(", ", failedKeys)}. These global hotkeys are likely registered in another application. Either edit these global hotkeys in the watcher settings or disable them in the other applications. By clicking OK, Image Gallery will proceed without the global hotkeys for these watchers.",
+                    "Failed to add",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
+            }
+        }
+
+
+
+        public void UpdateDataAndEnable()
         {
             lock (_updateLock)
             {
-                
-                if (!_disabled)
-                {
-                    RemoveAllGlobalKeys();
-                }
+
+                DisableKeys();
 
                 _slugPrefix = Guid.NewGuid();
                 _watcherKeyMap = new Dictionary<int, (Keys ShortcutKeys, bool GlobalShortcut)>();
@@ -104,20 +152,8 @@ namespace ImageGallery
                         _keyWatcherMap[shortcutKeys].globalIds.Add(watcherId);
                     }
                 }
-                foreach (var kv in _keyWatcherMap)
-                {
-                    var shortcutKeys = kv.Key;
-                    if (kv.Value.globalIds.Any())
-                    {
-                        HotkeyManager.Current.AddOrReplace(
-                            keySlug(shortcutKeys, _slugPrefix),
-                            shortcutKeys,
-                            true,
-                            GlobalHotkeyPressed
-                        );
-                    }
-                }
-                _disabled = false;
+
+                EnableKeys();
             }
 
         }

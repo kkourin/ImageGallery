@@ -76,6 +76,7 @@
             this.ExtensionTextBox.Name = "ExtensionTextBox";
             this.ExtensionTextBox.Size = new System.Drawing.Size(229, 113);
             this.ExtensionTextBox.TabIndex = 5;
+            this.ExtensionTextBox.TextChanged += new System.EventHandler(this.ExtensionTextBox_TextChanged);
             // 
             // HintLabel
             // 

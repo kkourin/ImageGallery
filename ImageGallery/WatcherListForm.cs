@@ -160,7 +160,7 @@ namespace ImageGallery
                 Console.Write($"Could not find watcher with id {id}.");
                 return;
             }
-            var editWatcherForm = new EditWatcherForm(found, _watcherKeyManager);
+            var editWatcherForm = new EditWatcherForm(found, _watcherKeyManager, Monitor);
             editWatcherForm.ShowDialog();
             RefreshListView();
         }

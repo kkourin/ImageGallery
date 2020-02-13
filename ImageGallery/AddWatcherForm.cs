@@ -109,5 +109,10 @@ namespace ImageGallery
             }
 
         }
+
+        private void ExtensionTextBox_TextChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }
