@@ -23,8 +23,6 @@ namespace ImageGallery
         public static void InitDatabase()
         {
 
-            var config = new DatabaseConfig();
-            FilesContext.Config = config;
             FilesContext.videoThumbnailExtractor = new VideoThumbnailExtractor();
             using (var ctx = new FilesContext())
             {
@@ -43,8 +41,9 @@ namespace ImageGallery
             {
                 try
                 {
+                    Console.WriteLine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
                     Core.Initialize();
-
+                    
                     InitDatabase();
                     var monitor = WatcherMonitor.InitMonitorFromDB();
                     var libVLC = new LibVLC();

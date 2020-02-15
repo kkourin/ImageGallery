@@ -40,10 +40,16 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.homeGroup = new System.Windows.Forms.GroupBox();
+            this.keyShortcutBox = new System.Windows.Forms.GroupBox();
+            this.keyboardLabel = new System.Windows.Forms.Label();
+            this.hotkeyTextBox = new System.Windows.Forms.TextBox();
+            this.hintLabel = new System.Windows.Forms.Label();
+            this.enabledKeyBox = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.recentlyCreatedUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.recentlyUsedUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.frequentlyClickedUpDown)).BeginInit();
             this.homeGroup.SuspendLayout();
+            this.keyShortcutBox.SuspendLayout();
             this.SuspendLayout();
             // 
             // recentlyCreatedBox
@@ -117,7 +123,7 @@
             // 
             // OkButton
             // 
-            this.OkButton.Location = new System.Drawing.Point(70, 129);
+            this.OkButton.Location = new System.Drawing.Point(75, 203);
             this.OkButton.Name = "OkButton";
             this.OkButton.Size = new System.Drawing.Size(75, 23);
             this.OkButton.TabIndex = 6;
@@ -127,7 +133,7 @@
             // 
             // CancelButton
             // 
-            this.CancelButton.Location = new System.Drawing.Point(213, 129);
+            this.CancelButton.Location = new System.Drawing.Point(218, 203);
             this.CancelButton.Name = "CancelButton";
             this.CancelButton.Size = new System.Drawing.Size(75, 23);
             this.CancelButton.TabIndex = 7;
@@ -183,11 +189,62 @@
             this.homeGroup.TabStop = false;
             this.homeGroup.Text = "Home settings";
             // 
+            // keyShortcutBox
+            // 
+            this.keyShortcutBox.Controls.Add(this.enabledKeyBox);
+            this.keyShortcutBox.Controls.Add(this.hintLabel);
+            this.keyShortcutBox.Controls.Add(this.hotkeyTextBox);
+            this.keyShortcutBox.Controls.Add(this.keyboardLabel);
+            this.keyShortcutBox.Location = new System.Drawing.Point(12, 129);
+            this.keyShortcutBox.Name = "keyShortcutBox";
+            this.keyShortcutBox.Size = new System.Drawing.Size(338, 68);
+            this.keyShortcutBox.TabIndex = 12;
+            this.keyShortcutBox.TabStop = false;
+            this.keyShortcutBox.Text = "Key shortcut";
+            // 
+            // keyboardLabel
+            // 
+            this.keyboardLabel.AutoSize = true;
+            this.keyboardLabel.Location = new System.Drawing.Point(13, 20);
+            this.keyboardLabel.Name = "keyboardLabel";
+            this.keyboardLabel.Size = new System.Drawing.Size(110, 13);
+            this.keyboardLabel.TabIndex = 0;
+            this.keyboardLabel.Text = "Open gallery shortcut:";
+            // 
+            // hotkeyTextBox
+            // 
+            this.hotkeyTextBox.Location = new System.Drawing.Point(129, 17);
+            this.hotkeyTextBox.Name = "hotkeyTextBox";
+            this.hotkeyTextBox.Size = new System.Drawing.Size(200, 20);
+            this.hotkeyTextBox.TabIndex = 1;
+            this.hotkeyTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.hotkeyTextBox_KeyDown);
+            // 
+            // hintLabel
+            // 
+            this.hintLabel.AutoSize = true;
+            this.hintLabel.Location = new System.Drawing.Point(126, 46);
+            this.hintLabel.Name = "hintLabel";
+            this.hintLabel.Size = new System.Drawing.Size(174, 13);
+            this.hintLabel.TabIndex = 2;
+            this.hintLabel.Text = "Type the new shortcut into the box.";
+            // 
+            // enabledKeyBox
+            // 
+            this.enabledKeyBox.AutoSize = true;
+            this.enabledKeyBox.Location = new System.Drawing.Point(16, 41);
+            this.enabledKeyBox.Name = "enabledKeyBox";
+            this.enabledKeyBox.Size = new System.Drawing.Size(65, 17);
+            this.enabledKeyBox.TabIndex = 3;
+            this.enabledKeyBox.Text = "Enabled";
+            this.enabledKeyBox.UseVisualStyleBackColor = true;
+            this.enabledKeyBox.CheckedChanged += new System.EventHandler(this.enabledKeyBox_CheckedChanged);
+            // 
             // SettingsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(366, 161);
+            this.ClientSize = new System.Drawing.Size(362, 240);
+            this.Controls.Add(this.keyShortcutBox);
             this.Controls.Add(this.homeGroup);
             this.Controls.Add(this.OkButton);
             this.Controls.Add(this.CancelButton);
@@ -196,11 +253,15 @@
             this.MinimizeBox = false;
             this.Name = "SettingsForm";
             this.Text = "Settings";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.SettingsForm_FormClosing);
+            this.Load += new System.EventHandler(this.SettingsForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.recentlyCreatedUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.recentlyUsedUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.frequentlyClickedUpDown)).EndInit();
             this.homeGroup.ResumeLayout(false);
             this.homeGroup.PerformLayout();
+            this.keyShortcutBox.ResumeLayout(false);
+            this.keyShortcutBox.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -219,5 +280,10 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.GroupBox homeGroup;
+        private System.Windows.Forms.GroupBox keyShortcutBox;
+        private System.Windows.Forms.TextBox hotkeyTextBox;
+        private System.Windows.Forms.Label keyboardLabel;
+        private System.Windows.Forms.Label hintLabel;
+        private System.Windows.Forms.CheckBox enabledKeyBox;
     }
 }

@@ -9,10 +9,53 @@ using System.Windows.Forms.VisualStyles;
 
 namespace ImageGallery
 {
+    using ImageGallery.Properties;
     // Literally copied from XPRenderer.
     using Manina.Windows.Forms;
     public class GalleryRenderer : Manina.Windows.Forms.ImageListViewRenderers.XPRenderer
     {
+
+
+        public override void DrawGroupHeader(Graphics g, string name, Rectangle bounds)
+        {
+            // Bottom border
+            bounds.Inflate(0, -4);
+            using (Pen pSpep = new Pen(Color.FromArgb(128, SystemColors.GrayText)))
+            {
+                g.DrawLine(pSpep, bounds.Left + 1, bounds.Bottom - 1, bounds.Right - 1, bounds.Bottom - 1);
+            }
+
+            // Text
+            if (bounds.Width > 4)
+            {
+                using (StringFormat sf = new StringFormat())
+                {
+                    sf.FormatFlags = StringFormatFlags.NoWrap;
+                    sf.Alignment = StringAlignment.Near;
+                    sf.LineAlignment = StringAlignment.Center;
+                    sf.Trimming = StringTrimming.EllipsisCharacter;
+                    Brush bText = SystemBrushes.WindowText;
+                    var baseFont = ImageListView.GroupHeaderFont == null ? ImageListView.Font : ImageListView.GroupHeaderFont;
+                    var split = name.Split(new string[] { @"\\" }, 2, StringSplitOptions.None);
+                    if (split.Length == 1)
+                    {
+                        g.DrawString(name, baseFont, bText, bounds, sf);
+                    }
+                    else
+                    {
+                        var boldedFont = new Font(baseFont, FontStyle.Bold);
+                        split[1] = "\\\\" + split[1];
+                        // Draw watcher
+                        g.DrawString(split[0], boldedFont, bText, bounds, sf);
+
+                        var watcherWidth = g.MeasureString(split[0], boldedFont).Width;
+                        var fileBounds = new RectangleF(bounds.X + watcherWidth, bounds.Y, bounds.Width, bounds.Height);
+                        g.DrawString(split[1], baseFont, bText, fileBounds, sf);
+                    }
+                }
+            }
+        }
+
         public override Size MeasureItem(Manina.Windows.Forms.View view)
         {
             Size itemSize = new Size();

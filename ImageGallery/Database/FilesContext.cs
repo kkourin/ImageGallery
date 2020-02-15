@@ -12,7 +12,8 @@ namespace ImageGallery.Database
     using Microsoft.EntityFrameworkCore.ChangeTracking;
     using System.Windows.Forms;
 
-    class FilesContext : DbContext
+
+    public class FilesContext : DbContext
     {
         public DbSet<File> Files { get; set; }
 
@@ -26,18 +27,61 @@ namespace ImageGallery.Database
             TimesAccessed
         }
 
-
-        public static DatabaseConfig Config { get; set; }
         public static VideoThumbnailExtractor videoThumbnailExtractor { get; set; }
+        private static Comparer<File> NameComparer { get; }
+        private static Comparer<File> LastUseTimeComparer { get; }
+        private static Comparer<File> TimesAccessedComparer { get; }
+        private static Comparer<File> LastChangeTimeComparer { get; }
+
+        private static int CompareDateTime(DateTime? d1, DateTime? d2)
+        {
+            if (!d1.HasValue)
+            {
+                return -1;
+            }
+            if (!d2.HasValue)
+            {
+                return 1;
+            }
+            return DateTime.Compare(d1.Value, d2.Value);
+        }
+        static FilesContext()
+        {
+            NameComparer = Comparer<File>.Create((f1, f2) => f1.Name.CompareTo(f2.Name));
+            LastUseTimeComparer = Comparer<File>.Create((f1, f2) => -CompareDateTime(f1.LastUseTime, f2.LastUseTime));
+            TimesAccessedComparer = Comparer<File>.Create((f1, f2) => -f1.TimesAccessed.CompareTo(f2.TimesAccessed));
+            LastChangeTimeComparer = Comparer<File>.Create((f1, f2) => -CompareDateTime(f1.LastChangeTime, f2.LastChangeTime));
+        }
+
+        public static Comparer<File> ComparerFromSort(SortColumn sortColumn)
+        {
+            switch (sortColumn)
+            {
+                case SortColumn.Name:
+                    return NameComparer;
+                case SortColumn.DateAccessed:
+                    return LastUseTimeComparer;
+                case SortColumn.TimesAccessed:
+                    return TimesAccessedComparer;
+                case SortColumn.DateChanged:
+                    return LastChangeTimeComparer;
+            }
+            return NameComparer; 
+        }
+
+        public static string GenerateDatabasePath()
+        {
+            string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"kkkourin\ImageGallery");
+            Directory.CreateDirectory(folder);
+#if DEBUG
+            return Path.Combine(folder, "gallery_data_DEBUG.db");
+#else
+            return Path.Combine(folder, "gallery_data.db");
+#endif
+        }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            DatabaseConfig config = Config ?? new DatabaseConfig();
-            var path = config.DatabasePath;
-            if (path.Length == 0)
-            {
-                throw new FileNotFoundException("Database parameter was empty.");
-            }
-            optionsBuilder.UseSqlite("Data Source=" + config.DatabasePath);
+            optionsBuilder.UseSqlite("Data Source=" + GenerateDatabasePath());
         }
 
 
@@ -152,6 +196,9 @@ namespace ImageGallery.Database
                          select file;
             return OrderBySort(result, order);
         }
+
+
+
         public static IQueryable<File> OrderBySort(IQueryable<File> files, SortColumn order)
         {
             switch (order)

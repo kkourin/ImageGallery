@@ -55,12 +55,13 @@
             this.PopoutPreviewButton = new System.Windows.Forms.ToolStripButton();
             this.settingsButton = new System.Windows.Forms.ToolStripButton();
             this.shutdownButton = new System.Windows.Forms.ToolStripButton();
-            this.mainVideoView = new ImageGallery.VideoControl();
-            this.fileInfoPanel = new ImageGallery.FileInfoPanel();
             this.NameToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.MinimizedIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.TrayContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.TrayExitButton = new System.Windows.Forms.ToolStripMenuItem();
+            this.groupFoldersButton = new System.Windows.Forms.ToolStripButton();
+            this.mainVideoView = new ImageGallery.VideoControl();
+            this.fileInfoPanel = new ImageGallery.FileInfoPanel();
             this.GalleryRightClick.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.previewBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -213,6 +214,7 @@
             this.WatcherDropDown,
             this.ShowAllButton,
             this.PopoutPreviewButton,
+            this.groupFoldersButton,
             this.settingsButton,
             this.shutdownButton});
             this.MainToolStrip.Location = new System.Drawing.Point(0, 0);
@@ -262,7 +264,7 @@
             // CreatedOrder
             // 
             this.CreatedOrder.Name = "CreatedOrder";
-            this.CreatedOrder.Size = new System.Drawing.Size(180, 22);
+            this.CreatedOrder.Size = new System.Drawing.Size(151, 22);
             this.CreatedOrder.Tag = "DateChanged";
             this.CreatedOrder.Text = "Date Modified";
             this.CreatedOrder.Click += new System.EventHandler(this.CreatedOrder_Click);
@@ -270,7 +272,7 @@
             // NameOrder
             // 
             this.NameOrder.Name = "NameOrder";
-            this.NameOrder.Size = new System.Drawing.Size(180, 22);
+            this.NameOrder.Size = new System.Drawing.Size(151, 22);
             this.NameOrder.Tag = "Name";
             this.NameOrder.Text = "Name";
             this.NameOrder.Click += new System.EventHandler(this.NameOrder_Click);
@@ -278,7 +280,7 @@
             // UsedOrder
             // 
             this.UsedOrder.Name = "UsedOrder";
-            this.UsedOrder.Size = new System.Drawing.Size(180, 22);
+            this.UsedOrder.Size = new System.Drawing.Size(151, 22);
             this.UsedOrder.Tag = "DateAccessed";
             this.UsedOrder.Text = "Date Last Used";
             this.UsedOrder.Click += new System.EventHandler(this.usedOrder_Click);
@@ -286,7 +288,7 @@
             // TimesUsedOrder
             // 
             this.TimesUsedOrder.Name = "TimesUsedOrder";
-            this.TimesUsedOrder.Size = new System.Drawing.Size(180, 22);
+            this.TimesUsedOrder.Size = new System.Drawing.Size(151, 22);
             this.TimesUsedOrder.Tag = "TimesAccessed";
             this.TimesUsedOrder.Text = "Times Used";
             this.TimesUsedOrder.Click += new System.EventHandler(this.TimesUsedOrder_Click);
@@ -343,6 +345,38 @@
             this.shutdownButton.Text = "Shutdown";
             this.shutdownButton.Click += new System.EventHandler(this.shutdownButton_Click);
             // 
+            // MinimizedIcon
+            // 
+            this.MinimizedIcon.ContextMenuStrip = this.TrayContextMenu;
+            this.MinimizedIcon.Text = "Image Gallery";
+            this.MinimizedIcon.Visible = true;
+            this.MinimizedIcon.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.MinimizedIcon_MouseDoubleClick);
+            // 
+            // TrayContextMenu
+            // 
+            this.TrayContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.TrayExitButton});
+            this.TrayContextMenu.Name = "TrayContextMenu";
+            this.TrayContextMenu.Size = new System.Drawing.Size(93, 26);
+            // 
+            // TrayExitButton
+            // 
+            this.TrayExitButton.Name = "TrayExitButton";
+            this.TrayExitButton.Size = new System.Drawing.Size(92, 22);
+            this.TrayExitButton.Text = "Exit";
+            this.TrayExitButton.Click += new System.EventHandler(this.TrayExitButton_Click);
+            // 
+            // groupFoldersButton
+            // 
+            this.groupFoldersButton.CheckOnClick = true;
+            this.groupFoldersButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.groupFoldersButton.Image = ((System.Drawing.Image)(resources.GetObject("groupFoldersButton.Image")));
+            this.groupFoldersButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.groupFoldersButton.Name = "groupFoldersButton";
+            this.groupFoldersButton.Size = new System.Drawing.Size(44, 22);
+            this.groupFoldersButton.Text = "Group";
+            this.groupFoldersButton.CheckedChanged += new System.EventHandler(this.groupFoldersButton_CheckedChanged);
+            // 
             // mainVideoView
             // 
             this.mainVideoView.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -366,27 +400,6 @@
             this.fileInfoPanel.Size = new System.Drawing.Size(293, 74);
             this.fileInfoPanel.TabIndex = 3;
             this.fileInfoPanel.TabStop = false;
-            // 
-            // MinimizedIcon
-            // 
-            this.MinimizedIcon.ContextMenuStrip = this.TrayContextMenu;
-            this.MinimizedIcon.Text = "Image Gallery";
-            this.MinimizedIcon.Visible = true;
-            this.MinimizedIcon.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.MinimizedIcon_MouseDoubleClick);
-            // 
-            // TrayContextMenu
-            // 
-            this.TrayContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.TrayExitButton});
-            this.TrayContextMenu.Name = "TrayContextMenu";
-            this.TrayContextMenu.Size = new System.Drawing.Size(94, 26);
-            // 
-            // TrayExitButton
-            // 
-            this.TrayExitButton.Name = "TrayExitButton";
-            this.TrayExitButton.Size = new System.Drawing.Size(93, 22);
-            this.TrayExitButton.Text = "Exit";
-            this.TrayExitButton.Click += new System.EventHandler(this.TrayExitButton_Click);
             // 
             // MainForm
             // 
@@ -450,6 +463,7 @@
         private System.Windows.Forms.ToolStripMenuItem addTagsButton;
         private System.Windows.Forms.ToolStripButton settingsButton;
         private System.Windows.Forms.ToolStripButton shutdownButton;
+        private System.Windows.Forms.ToolStripButton groupFoldersButton;
     }
 }
 

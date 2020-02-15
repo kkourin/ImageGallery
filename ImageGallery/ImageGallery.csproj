@@ -90,6 +90,7 @@
       <DependentUpon>FileInfoPanel.cs</DependentUpon>
     </Compile>
     <Compile Include="FileModelAdapter.cs" />
+    <Compile Include="FolderImageGrouper.cs" />
     <Compile Include="GalleryRenderer.cs" />
     <Compile Include="ImageGrouper.cs" />
     <Compile Include="MainForm.cs">
@@ -388,6 +389,8 @@
     <Content Include="Resources\nothumb.bmp" />
     <Content Include="Resources\pause.bmp" />
     <Content Include="Resources\play.bmp" />
+    <None Include="Resources\SortDescending.png" />
+    <None Include="Resources\SortAscending.png" />
     <None Include="Resources\refresh.bmp" />
     <Content Include="Resources\repeat.bmp" />
   </ItemGroup>

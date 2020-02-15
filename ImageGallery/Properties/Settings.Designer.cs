@@ -250,5 +250,29 @@ namespace ImageGallery.Properties {
                 this["FrequentlyClickedCount"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool GroupByFolder {
+            get {
+                return ((bool)(this["GroupByFolder"]));
+            }
+            set {
+                this["GroupByFolder"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("None")]
+        public global::System.Windows.Forms.Keys OpenShortcut {
+            get {
+                return ((global::System.Windows.Forms.Keys)(this["OpenShortcut"]));
+            }
+            set {
+                this["OpenShortcut"] = value;
+            }
+        }
     }
 }

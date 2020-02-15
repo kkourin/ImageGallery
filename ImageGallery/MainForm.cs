@@ -30,6 +30,13 @@ namespace ImageGallery
         Database.WatcherMonitor Monitor { get; set; }
         public int refreshRequested = 0;
         public System.Timers.Timer RefreshTimer { get; private set; }
+        public ImageListView.ImageListViewColumnHeader _relPathCol { get; private set; }
+#if DEBUG
+        private const string OpenHotKeyName = "a5168172-901e-4951-871a-1ea72e8728e7_ImageGalleryOpenDEBUG";
+#else
+         private const string OpenHotKeyName = "a5168172-901e-4951-871a-1ea72e8728e7_ImageGalleryOpen";
+#endif
+
         private const int RefreshGracePeriod = 3000;
 
         private const int InitSearchResultSize = 50;
@@ -70,9 +77,6 @@ namespace ImageGallery
             // Init tray component
             MinimizedIcon.Icon = Properties.Resources.TrayIcon;
 
-            // Add hotkeys
-            AddHotkeys();
-
             _watcherKeyManager = new WatcherKeyManager(this);
 
             // Fill fields
@@ -93,16 +97,17 @@ namespace ImageGallery
             ilvThumbs.SetRenderer(new GalleryRenderer());
             ilvThumbs.Columns.Add(ColumnType.Name);
 
-            // Set up grouper.
+            // Set up groupers.
             var ResultTypeCol = new ImageListView.ImageListViewColumnHeader(ColumnType.Custom, "Type", "Result Type");
             ResultTypeCol.Comparer = new ResultTypeComparer();
             ilvThumbs.Columns.Add(ResultTypeCol);
             var grouper = new ImageGrouper();
             ilvThumbs.Columns[1].Grouper = grouper;
-            ilvThumbs.GroupColumn = 1;
-            ilvThumbs.GroupOrder = Manina.Windows.Forms.SortOrder.Ascending;
-            ilvThumbs.SortColumn = 1;
-            ilvThumbs.SortOrder = Manina.Windows.Forms.SortOrder.Descending;
+
+            _relPathCol = new ImageListView.ImageListViewColumnHeader(ColumnType.Custom, "Relative Directory", "Relative Directory");
+            ilvThumbs.Columns.Add(_relPathCol);
+
+            ilvThumbs.GroupHeaderFont = new Font("Arial", 11);
 
             if (searchTextBox.Enabled && searchTextBox.Visible)
             {
@@ -116,14 +121,6 @@ namespace ImageGallery
         }
 
 
-        private void AddHotkeys()
-        {
-#if DEBUG
-            HotkeyManager.Current.AddOrReplace("OpenDEBUG", Keys.Control | Keys.Shift | Keys.D3, OpenGalleryHotkey_Press);
-#else
-            HotkeyManager.Current.AddOrReplace("Open", Keys.Control | Keys.Shift | Keys.D2, OpenGalleryHotkey_Press);
-#endif
-        }
         private void FSWatcher_SyncOccurred(object sender, FSWatcher.SyncOccurredEventArgs e)
         {
             this.Invoke((MethodInvoker)delegate
@@ -241,6 +238,8 @@ namespace ImageGallery
         }
         private void DoSearch()
         {
+
+
             searchCts.Cancel();
             searchCts = new CancellationTokenSource();
             DisplaySearchTask(searchCts.Token);
@@ -292,36 +291,78 @@ namespace ImageGallery
                 var watcherIds = GetActiveWatcherIds();
                 var searchString = FilesContext.MakeQuery(searchTextBox.Text);
                 var result = new List<File>();
+                List<ImageListViewItem> searchResult;
                 if (token.IsCancellationRequested)
                 {
                     return;
                 }
                 using (var ctx = new FilesContext())
                 {
-                    var f = ctx.Search(searchString, watcherIds, GetSortColumn()).Take(SearchResultSize);
-                    result.AddRange(ctx.Search(searchString, watcherIds, GetSortColumn()).Take(SearchResultSize));
+                    //result.AddRange(ctx.Search(searchString, watcherIds, GetSortColumn()).Take(SearchResultSize));
+                    searchResult = ctx.Search(searchString, watcherIds, GetSortColumn())
+                        .Take(SearchResultSize)
+                        .Select(file => MakeListViewItem(file, file.Watcher, "Search Result"))
+                        .ToList();
                 }
-                if (token.IsCancellationRequested)
-                {
-                    return;
-                }
-                var items = from file in result
-                            select MakeListViewItem(file, "Search Result");
                 if (token.IsCancellationRequested)
                 {
                     return;
                 }
                 this.Invoke((MethodInvoker)delegate
                 {
-                    ilvThumbs.Items.AddRange(items.ToArray(), Adaptor);
+                    ilvThumbs.Items.Clear();
+                    if (groupFoldersButton.Checked)
+                    {
+                        AddFolderGroupedItems(searchResult);
+                    } else
+                    {
+                        AddTypeGroupedItems(searchResult);
+                    }
                     SelectFirstIfExists();
                 });
             }, token);
         }
-        private static ImageListViewItem MakeListViewItem(File model, string heading)
+
+        private void AddFolderGroupedItems(List<ImageListViewItem> items)
+        {
+            var grouper = new FolderImageGrouper(items);
+            var sorter = new RelativePathComparer(GetSortColumn(), grouper.IdToPath);
+            _relPathCol.Comparer = sorter;
+            ilvThumbs.Columns[2].Grouper = grouper;
+
+            ilvThumbs.GroupColumn = 2;
+            ilvThumbs.GroupOrder = Manina.Windows.Forms.SortOrder.Ascending;
+
+            ilvThumbs.SortColumn = 2;
+            ilvThumbs.SortOrder = Manina.Windows.Forms.SortOrder.Descending;
+            ilvThumbs.Items.AddRange(items.ToArray(), Adaptor);
+            ilvThumbs.Sort();
+        }
+
+        private void AddTypeGroupedItems(List<ImageListViewItem> items)
+        {
+            ilvThumbs.GroupColumn = 1;
+            ilvThumbs.GroupOrder = Manina.Windows.Forms.SortOrder.Ascending;
+            ilvThumbs.SortColumn = 1;
+            ilvThumbs.SortOrder = Manina.Windows.Forms.SortOrder.Descending;
+            ilvThumbs.Items.AddRange(items.ToArray(), Adaptor);
+            ilvThumbs.Sort();
+        }
+
+        private static ImageListViewItem MakeListViewItem(File model, Watcher watcher, string heading)
         {
             ImageListViewItem item = new ImageListViewItem(model, model.Name);
+            item.Tag = watcher.Directory;
+            string relativeDirectory;
+            if (DBHelpers.IsInDir(new DirectoryInfo(model.Directory), watcher.Directory))
+            {
+                relativeDirectory = DBHelpers.GetRelativePath(model.Directory, watcher.Directory);
+            } else
+            {
+                relativeDirectory = "Unknown";
+            }
             item.SubItems.Add("Type", heading);
+            item.SubItems.Add("Relative Directory", $"{watcher.Name} \\\\ {relativeDirectory}");
             return item;
         }
 
@@ -336,12 +377,20 @@ namespace ImageGallery
                                                       where activeWatchers.Contains(file.WatcherId)
                                                       select file, GetSortColumn());
 
-                items.AddRange(models.Select(file => MakeListViewItem(file, "All Items")));
+                items.AddRange(models.Select(file => MakeListViewItem(file, file.Watcher, "All Items")));
             }
             VisibleIds.Clear();
-            var itemsArray = items.ToArray();
             VisibleIds = items.Select((t) => (t.VirtualItemKey as File).Id).ToHashSet();
-            ilvThumbs.Items.AddRange(items.ToArray(), Adaptor);
+
+            ilvThumbs.Items.Clear();
+            if (groupFoldersButton.Checked)
+            {
+                AddFolderGroupedItems(items);
+            }
+            else
+            {
+                AddTypeGroupedItems(items);
+            }
         }
         private void ShowDefault()
         {
@@ -349,39 +398,35 @@ namespace ImageGallery
             var activeWatchers = GetActiveWatcherIds();
             using (var ctx = new FilesContext())
             {
-
-
-
                 var settings = Properties.Settings.Default;
                 // Recently Created
                 if (settings.ShowRecentlyCreated)
                 {
-                    var modifiedModels = (from file in ctx.Files.AsNoTracking()
+                    var modifiedModels = (from file in ctx.Files
                                           where activeWatchers.Contains(file.WatcherId)
                                           orderby file.LastChangeTime descending
-                                          select MakeListViewItem(file, "Recently Created"));
+                                          select MakeListViewItem(file, file.Watcher, "Recently Created"));
                     items.AddRange(modifiedModels.Take(settings.RecentlyCreatedCount));
                 }
                 if (settings.ShowRecentlyUsed)
                 {
-                    var LastUsemodels = from file in ctx.Files.AsNoTracking()
+                    var LastUsemodels = from file in ctx.Files
                                         where activeWatchers.Contains(file.WatcherId)
                                         orderby file.LastUseTime descending
-                                        select MakeListViewItem(file, "Recently Used");
+                                        select MakeListViewItem(file, file.Watcher, "Recently Used");
                     items.AddRange(LastUsemodels.Take(settings.RecentlyUsedCount));
                 }
                 if (settings.ShowFrequentlyClicked)
                 {
-                    var frequentModels = from file in ctx.Files.AsNoTracking()
+                    var frequentModels = from file in ctx.Files
                                          where activeWatchers.Contains(file.WatcherId)
                                          orderby file.TimesAccessed descending
-                                         select MakeListViewItem(file, "Frequently Used");
+                                         select MakeListViewItem(file, file.Watcher, "Frequently Used");
                     items.AddRange(frequentModels.Take(settings.FrequentlyClickedCount));
                 }
 
             }
-            ilvThumbs.Items.AddRange(items.ToArray(), Adaptor);
-            ilvThumbs.Sort();
+            AddTypeGroupedItems(items);
         }
 
         public class ResultTypeComparer : IComparer<ImageListViewItem>
@@ -423,7 +468,12 @@ namespace ImageGallery
                 {
 
                     return xFile.TimesAccessed.CompareTo(yFile.TimesAccessed);
-                } else
+                }
+                else if (xType == "All Items" || xType == "Search Result")
+                {
+                    return 0;
+                }
+                else
                 {
                     throw new NotImplementedException("Sort order.");
                 }
@@ -949,10 +999,46 @@ namespace ImageGallery
                 popoutPreview.Height = Height;
                 mainVideoView.SetPlayer(_mediaPlayer);
             }
+            groupFoldersButton.Checked = settings.GroupByFolder;
+            MaybeSetGlobalKey(Properties.Settings.Default.OpenShortcut);
             SetActiveIdsFromConfigString(settings.ActiveWatchers);
             SetSortColumn((FilesContext.SortColumn)settings.SortColumn);
 
         }
+
+        public void MaybeSetGlobalKey(Keys openShortcut)
+        {
+            try
+            {
+#if DEBUG
+                HotkeyManager.Current.AddOrReplace(OpenHotKeyName, openShortcut, OpenGalleryHotkey_Press);
+#else
+                HotkeyManager.Current.AddOrReplace(OpenHotKeyName, openShortcut, OpenGalleryHotkey_Press);
+#endif
+            }
+            catch (HotkeyAlreadyRegisteredException)
+            {
+                MessageBox.Show("Failed to set the open hotkey. Proceeding without. This may be fixed by changing the key in the settings.", "Failed to add hotkey", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+        }
+
+        public void MaybeUnsetGlobalKey(Keys openShortcut)
+        {
+            try
+            {
+#if DEBUG
+                HotkeyManager.Current.Remove(OpenHotKeyName);
+#else
+                HotkeyManager.Current.Remove(OpenHotKeyName);
+#endif
+            }
+            catch (HotkeyAlreadyRegisteredException)
+            {
+                MessageBox.Show("Failed to set the open hotkey. Proceeding without. This may be fixed by changing the key in the settings.", "Failed to add hotkey", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         private void SaveConfiguration()
         {
             var settings = Properties.Settings.Default;
@@ -995,6 +1081,8 @@ namespace ImageGallery
             }
             settings.ActiveWatchers = GetActiveIdsConfigString();
             settings.SortColumn = (int)GetSortColumn();
+            settings.GroupByFolder = groupFoldersButton.Checked;
+
             settings.Save();
         }
 
@@ -1289,7 +1377,9 @@ namespace ImageGallery
 
         private void settingsButton_Click(object sender, EventArgs e)
         {
-            var settingsForm = new SettingsForm();
+            var settingsForm = new SettingsForm(this);
+            MaybeSetGlobalKey(Properties.Settings.Default.OpenShortcut);
+
             settingsForm.ShowDialog();
             if (searchTextBox.Text.Length == 0)
             {
@@ -1312,6 +1402,11 @@ namespace ImageGallery
             {
                 Application.Exit();
             }
+        }
+
+        private void groupFoldersButton_CheckedChanged(object sender, EventArgs e)
+        {
+            RefreshView();
         }
     }
 
