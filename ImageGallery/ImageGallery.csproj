@@ -386,6 +386,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\full.bmp" />
+    <None Include="Resources\icon.bmp" />
+    <None Include="Resources\icon.ico" />
     <Content Include="Resources\nothumb.bmp" />
     <Content Include="Resources\pause.bmp" />
     <Content Include="Resources\play.bmp" />

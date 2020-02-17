@@ -36,6 +36,8 @@
             this.hotkeyTextBox = new System.Windows.Forms.TextBox();
             this.globalBox = new System.Windows.Forms.CheckBox();
             this.dataGroupBox = new System.Windows.Forms.GroupBox();
+            this.extensionsLabel = new System.Windows.Forms.Label();
+            this.HintLabel = new System.Windows.Forms.Label();
             this.GenerateVideoThumbnailsBox = new System.Windows.Forms.CheckBox();
             this.scanSubdirectoriesBox = new System.Windows.Forms.CheckBox();
             this.VideoButton = new System.Windows.Forms.Button();
@@ -43,8 +45,7 @@
             this.NameTextBox = new System.Windows.Forms.TextBox();
             this.ExtensionTextBox = new System.Windows.Forms.TextBox();
             this.NameLabel = new System.Windows.Forms.Label();
-            this.HintLabel = new System.Windows.Forms.Label();
-            this.extensionsLabel = new System.Windows.Forms.Label();
+            this.AudioButton = new System.Windows.Forms.Button();
             this.shortcutsBox.SuspendLayout();
             this.dataGroupBox.SuspendLayout();
             this.SuspendLayout();
@@ -123,6 +124,7 @@
             // 
             // dataGroupBox
             // 
+            this.dataGroupBox.Controls.Add(this.AudioButton);
             this.dataGroupBox.Controls.Add(this.extensionsLabel);
             this.dataGroupBox.Controls.Add(this.HintLabel);
             this.dataGroupBox.Controls.Add(this.GenerateVideoThumbnailsBox);
@@ -138,6 +140,25 @@
             this.dataGroupBox.TabIndex = 3;
             this.dataGroupBox.TabStop = false;
             this.dataGroupBox.Text = "Data";
+            // 
+            // extensionsLabel
+            // 
+            this.extensionsLabel.AutoSize = true;
+            this.extensionsLabel.Location = new System.Drawing.Point(12, 44);
+            this.extensionsLabel.Name = "extensionsLabel";
+            this.extensionsLabel.Size = new System.Drawing.Size(101, 13);
+            this.extensionsLabel.TabIndex = 18;
+            this.extensionsLabel.Text = "Allowed Extensions:";
+            this.extensionsLabel.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // HintLabel
+            // 
+            this.HintLabel.Location = new System.Drawing.Point(50, 180);
+            this.HintLabel.Name = "HintLabel";
+            this.HintLabel.Size = new System.Drawing.Size(262, 33);
+            this.HintLabel.TabIndex = 17;
+            this.HintLabel.Text = "Separate with commas (e.g. .png, .jpg, .webm). Or leave blank to watch all files." +
+    "";
             // 
             // GenerateVideoThumbnailsBox
             // 
@@ -165,7 +186,7 @@
             // 
             // VideoButton
             // 
-            this.VideoButton.Location = new System.Drawing.Point(15, 119);
+            this.VideoButton.Location = new System.Drawing.Point(15, 100);
             this.VideoButton.Name = "VideoButton";
             this.VideoButton.Size = new System.Drawing.Size(96, 23);
             this.VideoButton.TabIndex = 12;
@@ -175,7 +196,7 @@
             // 
             // ImagesButton
             // 
-            this.ImagesButton.Location = new System.Drawing.Point(15, 90);
+            this.ImagesButton.Location = new System.Drawing.Point(15, 71);
             this.ImagesButton.Name = "ImagesButton";
             this.ImagesButton.Size = new System.Drawing.Size(96, 23);
             this.ImagesButton.TabIndex = 11;
@@ -207,24 +228,15 @@
             this.NameLabel.TabIndex = 14;
             this.NameLabel.Text = "Name:";
             // 
-            // HintLabel
+            // AudioButton
             // 
-            this.HintLabel.Location = new System.Drawing.Point(50, 180);
-            this.HintLabel.Name = "HintLabel";
-            this.HintLabel.Size = new System.Drawing.Size(262, 33);
-            this.HintLabel.TabIndex = 17;
-            this.HintLabel.Text = "Separate with commas (e.g. .png, .jpg, .webm). Or leave blank to watch all files." +
-    "";
-            // 
-            // extensionsLabel
-            // 
-            this.extensionsLabel.AutoSize = true;
-            this.extensionsLabel.Location = new System.Drawing.Point(12, 44);
-            this.extensionsLabel.Name = "extensionsLabel";
-            this.extensionsLabel.Size = new System.Drawing.Size(101, 13);
-            this.extensionsLabel.TabIndex = 18;
-            this.extensionsLabel.Text = "Allowed Extensions:";
-            this.extensionsLabel.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            this.AudioButton.Location = new System.Drawing.Point(15, 129);
+            this.AudioButton.Name = "AudioButton";
+            this.AudioButton.Size = new System.Drawing.Size(96, 23);
+            this.AudioButton.TabIndex = 19;
+            this.AudioButton.Text = "Add Audio";
+            this.AudioButton.UseVisualStyleBackColor = true;
+            this.AudioButton.Click += new System.EventHandler(this.AudioButton_Click);
             // 
             // EditWatcherForm
             // 
@@ -269,5 +281,6 @@
         private System.Windows.Forms.Label NameLabel;
         private System.Windows.Forms.Label extensionsLabel;
         private System.Windows.Forms.Label HintLabel;
+        private System.Windows.Forms.Button AudioButton;
     }
 }

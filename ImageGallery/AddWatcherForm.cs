@@ -114,5 +114,10 @@ namespace ImageGallery
         {
 
         }
+
+        private void AudioButton_Click(object sender, EventArgs e)
+        {
+            ExtensionTextBox.AppendText(GetTextToAppend(Helpers.AudioFileExtensions));
+        }
     }
 }

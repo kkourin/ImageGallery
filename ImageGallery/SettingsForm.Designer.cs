@@ -51,6 +51,9 @@
             this.homeGroup.SuspendLayout();
             this.keyShortcutBox.SuspendLayout();
             this.SuspendLayout();
+
+            this.Icon = Properties.Resources.icon;
+
             // 
             // recentlyCreatedBox
             // 

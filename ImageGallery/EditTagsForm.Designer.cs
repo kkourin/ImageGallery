@@ -33,6 +33,9 @@
             this.okButton = new System.Windows.Forms.Button();
             this.cancelButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
+
+            this.Icon = Properties.Resources.icon;
+
             // 
             // editTagsLabel
             // 

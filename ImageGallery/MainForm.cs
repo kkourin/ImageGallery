@@ -74,9 +74,6 @@ namespace ImageGallery
             RefreshTimer = new System.Timers.Timer() { AutoReset = false, Interval =  RefreshGracePeriod};
             RefreshTimer.Elapsed += RefreshTimer_Elapsed;
 
-            // Init tray component
-            MinimizedIcon.Icon = Properties.Resources.TrayIcon;
-
             _watcherKeyManager = new WatcherKeyManager(this);
 
             // Fill fields
@@ -552,7 +549,7 @@ namespace ImageGallery
             
             return Task.Run(() =>
             {
-                if (Helpers.IsVideoFile(file.FullName))
+                if (Helpers.IsVideoFile(file.FullName) || Helpers.IsAudioFile(file.FullName))
                 {
                     setLoadedVideo(thumbnail, file, token);
                     return;

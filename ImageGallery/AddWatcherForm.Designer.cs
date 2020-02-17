@@ -42,6 +42,7 @@
             this.FileSelectButton = new System.Windows.Forms.Button();
             this.scanSubdirectoriesBox = new System.Windows.Forms.CheckBox();
             this.GenerateVideoThumbnailsBox = new System.Windows.Forms.CheckBox();
+            this.AudioButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // DirLabel
@@ -127,7 +128,7 @@
             // 
             // ImagesButton
             // 
-            this.ImagesButton.Location = new System.Drawing.Point(18, 114);
+            this.ImagesButton.Location = new System.Drawing.Point(18, 96);
             this.ImagesButton.Name = "ImagesButton";
             this.ImagesButton.Size = new System.Drawing.Size(96, 23);
             this.ImagesButton.TabIndex = 3;
@@ -137,7 +138,7 @@
             // 
             // VideoButton
             // 
-            this.VideoButton.Location = new System.Drawing.Point(18, 143);
+            this.VideoButton.Location = new System.Drawing.Point(18, 125);
             this.VideoButton.Name = "VideoButton";
             this.VideoButton.Size = new System.Drawing.Size(96, 23);
             this.VideoButton.TabIndex = 4;
@@ -179,11 +180,22 @@
             this.GenerateVideoThumbnailsBox.Text = "Generate video thumbnails";
             this.GenerateVideoThumbnailsBox.UseVisualStyleBackColor = true;
             // 
+            // AudioButton
+            // 
+            this.AudioButton.Location = new System.Drawing.Point(20, 154);
+            this.AudioButton.Name = "AudioButton";
+            this.AudioButton.Size = new System.Drawing.Size(96, 23);
+            this.AudioButton.TabIndex = 10;
+            this.AudioButton.Text = "Add Audio";
+            this.AudioButton.UseVisualStyleBackColor = true;
+            this.AudioButton.Click += new System.EventHandler(this.AudioButton_Click);
+            // 
             // AddWatcherForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(362, 294);
+            this.Controls.Add(this.AudioButton);
             this.Controls.Add(this.GenerateVideoThumbnailsBox);
             this.Controls.Add(this.scanSubdirectoriesBox);
             this.Controls.Add(this.FileSelectButton);
@@ -199,6 +211,7 @@
             this.Controls.Add(this.WhitelistedLabel);
             this.Controls.Add(this.DirLabel);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.Icon = global::ImageGallery.Properties.Resources.icon;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "AddWatcherForm";
@@ -225,5 +238,6 @@
         private System.Windows.Forms.Button FileSelectButton;
         private System.Windows.Forms.CheckBox scanSubdirectoriesBox;
         private System.Windows.Forms.CheckBox GenerateVideoThumbnailsBox;
+        private System.Windows.Forms.Button AudioButton;
     }
 }

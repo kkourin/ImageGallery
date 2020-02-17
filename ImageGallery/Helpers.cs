@@ -18,6 +18,7 @@ namespace ImageGallery
         public static readonly string[] ImageFileExtensions = new string[] { "jpg", "jpeg", "png", "gif", "bmp", "ico", "tif", "tiff" };
         public static readonly string[] TextFileExtensions = new string[] { "txt", "log", "nfo", "c", "cpp", "cc", "cxx", "h", "hpp", "hxx", "cs", "vb", "html", "htm", "xhtml", "xht", "xml", "css", "js", "php", "bat", "java", "lua", "py", "pl", "cfg", "ini", "dart", "go", "gohtml" };
         public static readonly string[] VideoFileExtensions = new string[] { "mp4", "webm", "mkv", "avi", "vob", "ogv", "ogg", "mov", "qt", "wmv", "m4p", "m4v", "mpg", "mp2", "mpeg", "mpe", "mpv", "m2v", "m4v", "flv", "f4v" };
+        public static readonly string[] AudioFileExtensions = new string[] { "3gp", "aac", "ac3", "m4a", "caf", "xm", "flac", "mod", "mp3", "ape", "pls", "opus", "ra", "ram", "spx", "tta", "ogg", "wav" };
         private static readonly Color DefaultBgColour;
 
         static Helpers()
@@ -65,6 +66,11 @@ namespace ImageGallery
         public static bool IsVideoFile(string filePath)
         {
             return CheckExtension(filePath, VideoFileExtensions);
+        }
+
+        public static bool IsAudioFile(string filePath)
+        {
+            return CheckExtension(filePath, AudioFileExtensions);
         }
 
         // Throws argument exception. Warning: this does not check if the file has a image file extension by default.

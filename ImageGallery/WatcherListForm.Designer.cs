@@ -42,6 +42,9 @@
             this.LastErrorButton = new System.Windows.Forms.Button();
             this.editButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
+
+            this.Icon = Properties.Resources.icon;
+
             // 
             // AddButton
             // 
