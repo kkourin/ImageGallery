@@ -43,6 +43,8 @@ namespace ImageGallery.Database.Models
         public string Extension_fts { get; set; }
         [Required]
         public ObservableHashSet<string> Custom_fts { get; set; }
+        public ObservableHashSet<string> XMPTags_fts { get; set; }
+
 
 
 
@@ -59,10 +61,10 @@ namespace ImageGallery.Database.Models
 
         public static ObservableHashSet<string> TagStringToHash(string tagString)
         {
-            return tagString.Split(new char[] { '|', ' ' }, StringSplitOptions.RemoveEmptyEntries).ToObservableHashSet();
+            return tagString.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries).ToObservableHashSet();
         }
 
-        public static string HashToTagString(ObservableHashSet<string> tags)
+        public static string EnumToTagString(IEnumerable<string> tags)
         {
             return String.Join("|", tags);
         }

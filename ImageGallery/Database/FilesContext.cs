@@ -9,12 +9,17 @@ using System.IO;
 namespace ImageGallery.Database
 {
     using ImageGallery.Database.Models;
+    using ImageGallery.XMPLib;
+    using log4net;
     using Microsoft.EntityFrameworkCore.ChangeTracking;
     using System.Windows.Forms;
 
 
     public class FilesContext : DbContext
     {
+        private static readonly ILog _log = LogManager.GetLogger(typeof(FilesContext));
+
+
         public DbSet<File> Files { get; set; }
 
         public DbSet<Watcher> Watchers { get; set; }
@@ -28,6 +33,7 @@ namespace ImageGallery.Database
         }
 
         public static VideoThumbnailExtractor videoThumbnailExtractor { get; set; }
+        public static SearchTagEditor searchTagEditor { get; set; }
         private static Comparer<File> NameComparer { get; }
         private static Comparer<File> LastUseTimeComparer { get; }
         private static Comparer<File> TimesAccessedComparer { get; }
@@ -68,6 +74,7 @@ namespace ImageGallery.Database
             }
             return NameComparer; 
         }
+
 
         public static string GenerateDatabasePath()
         {
@@ -134,9 +141,15 @@ namespace ImageGallery.Database
                 .Property(b => b.Custom_fts)
                 .HasDefaultValue(new ObservableHashSet<string>())
                 .HasConversion(
-                    h => File.HashToTagString(h),
+                    h => File.EnumToTagString(h),
                     s => File.TagStringToHash(s));
-
+            
+            modelBuilder.Entity<File>()
+                .Property(b => b.XMPTags_fts)
+                .HasConversion(
+                    h => File.EnumToTagString(h),
+                    s => File.TagStringToHash(s));
+                    
             modelBuilder.Entity<File>()
                 .Property(b => b.Comment)
                 .HasDefaultValue("");
@@ -218,7 +231,7 @@ namespace ImageGallery.Database
 
         public static string MakeQuery(string textInput)
         {
-            var terms = from term in textInput.Split()
+            var terms = from term in textInput.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
                         select String.Format("\"{0}\" *", term);
             return String.Join(" AND ", terms);
         }
@@ -235,6 +248,9 @@ namespace ImageGallery.Database
             }
             SaveChanges();
         }
+
+
+
         public void RecordUse(File file)
         {
             RecordUse(new List<File> { file });
@@ -283,6 +299,7 @@ namespace ImageGallery.Database
                          select file).ToList();
             if (files.Count == 0)
             {
+                AddFile(newName, watcher);
                 return;
             }
             else if (files.Count == 1)
@@ -352,8 +369,25 @@ namespace ImageGallery.Database
             };
             // Fix these when they actually get exceptions.
             newFile.Thumbnail = MaybeMakeThumbnail(fileInfo, watcher);
+            updateXMPTagsFromFile(newFile);
             return newFile;
 
+        }
+
+        private static void updateXMPTagsFromFile(File file)
+        {
+            if (!SearchTagEditor.usableExtension(file.FullName))
+            {
+                return;
+            }
+            var tag = searchTagEditor.getSearchTag(file.FullName);
+            if (tag == null)
+            {
+                file.XMPTags_fts = null;
+            } else
+            {
+                file.XMPTags_fts = File.TagStringToHash(tag);
+            }
         }
 
         public void UpdateFile(string filename, Watcher watcher)
@@ -382,7 +416,8 @@ namespace ImageGallery.Database
             file.CreatedTime = fileInfo.CreationTimeUtc;
             file.FileModifiedTime = fileInfo.LastWriteTimeUtc;
             file.LastChangeTime = Helpers.LastChangeTime(fileInfo);
-            file.Thumbnail = MaybeMakeThumbnail(fileInfo, watcher); // TODO: get new thumbnail
+            file.Thumbnail = MaybeMakeThumbnail(fileInfo, watcher);
+            updateXMPTagsFromFile(file);
             SaveChanges();
         }
         
@@ -395,6 +430,8 @@ namespace ImageGallery.Database
 
         private static byte[] MaybeMakeThumbnail(FileInfo file, Watcher watcher)
         {
+            _log.Info($"Generating thumbnail for file {file.FullName}.");
+
             if (Helpers.IsImageFile(file.FullName))
             {
                 return DBHelpers.GetThumbnail(file);
@@ -406,7 +443,7 @@ namespace ImageGallery.Database
             }
             return null;
         }
-        public bool Sync(Watcher watcher)
+        public bool Sync(Watcher watcher, bool updateThumbnails = true)
         {
             bool changed = false;
             var filesInDir = DBHelpers.GetAllFileInfo(watcher);
@@ -433,7 +470,11 @@ namespace ImageGallery.Database
             {
                 file.FileModifiedTime = filesInDir[file.FullName].Item1;
                 file.FileCreatedTime = filesInDir[file.FullName].Item2;
-                file.Thumbnail = MaybeMakeThumbnail(new FileInfo(file.FullName), watcher);
+                if (updateThumbnails)
+                {
+                    file.Thumbnail = MaybeMakeThumbnail(new FileInfo(file.FullName), watcher);
+                }
+                updateXMPTagsFromFile(file);
             }
 
             // Add files that are new.
@@ -531,6 +572,33 @@ namespace ImageGallery.Database
             }
             SaveChanges();
             return count;
+        }
+
+        public List<File> UpdateXMPFilesTags(List<File> editedFiles)
+        {
+            List<File> succeeded = new List<File>();
+            Dictionary<string, File> editedFileDict = editedFiles.ToDictionary(file => file.FullName, file => file);
+            HashSet<string> ids = editedFileDict.Keys.ToHashSet();
+            var matchedFiles = Files.Where(file => ids.Contains(file.FullName));
+            foreach (var matchedFile in matchedFiles)
+            {
+                matchedFile.XMPTags_fts = editedFileDict[matchedFile.FullName].XMPTags_fts;
+                succeeded.Add(matchedFile);
+            }
+            SaveChanges();
+            return succeeded;
+        }
+
+        public bool UpdateXMPFileTags(File file)
+        {
+            var foundFile = Files.Find(file.Id);
+            if (foundFile == null)
+            {
+                return false;
+            }
+            foundFile.XMPTags_fts = file.XMPTags_fts;
+            SaveChanges();
+            return true;
         }
 
         public Dictionary<int, (Keys ShortcutKeys, bool GlobalShortcut)> GetWatcherShortcutMap()

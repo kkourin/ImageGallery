@@ -26,6 +26,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -35,6 +36,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>
@@ -50,6 +52,10 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AddWatcherForm.cs">
@@ -83,6 +89,12 @@
     <Compile Include="EditWatcherForm.Designer.cs">
       <DependentUpon>EditWatcherForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="EditXMPTagsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="EditXMPTagsForm.Designer.cs">
+      <DependentUpon>EditXMPTagsForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="FileInfoPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -92,7 +104,14 @@
     <Compile Include="FileModelAdapter.cs" />
     <Compile Include="FolderImageGrouper.cs" />
     <Compile Include="GalleryRenderer.cs" />
+    <Compile Include="IconHelpers.cs" />
     <Compile Include="ImageGrouper.cs" />
+    <Compile Include="LogForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="LogForm.Designer.cs">
+      <DependentUpon>LogForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -119,12 +138,32 @@
     <Compile Include="Migrations\20200211052744_AddShortcutColumns.designer.cs">
       <DependentUpon>20200211052744_AddShortcutColumns.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\20200221225456_AddXMPSearchTags.cs" />
+    <Compile Include="Migrations\20200221225456_AddXMPSearchTags.designer.cs">
+      <DependentUpon>20200221225456_AddXMPSearchTags.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\20200221225541_AddXMPSearchTagFTS.cs" />
+    <Compile Include="Migrations\20200221225541_AddXMPSearchTagFTS.designer.cs">
+      <DependentUpon>20200221225541_AddXMPSearchTagFTS.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\FilesContextModelSnapshot.cs" />
+    <Compile Include="MultiXMPEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MultiXMPEdit.Designer.cs">
+      <DependentUpon>MultiXMPEdit.cs</DependentUpon>
+    </Compile>
     <Compile Include="PopoutImageView.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="PopoutImageView.Designer.cs">
       <DependentUpon>PopoutImageView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="RenameForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="RenameForm.Designer.cs">
+      <DependentUpon>RenameForm.cs</DependentUpon>
     </Compile>
     <Compile Include="SettingsForm.cs">
       <SubType>Form</SubType>
@@ -132,6 +171,7 @@
     <Compile Include="SettingsForm.Designer.cs">
       <DependentUpon>SettingsForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="TextBoxAppender.cs" />
     <Compile Include="VideoControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -162,6 +202,9 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="XMPLib\ExifToolException.cs" />
+    <Compile Include="XMPLib\ExifToolWrapper.cs" />
+    <Compile Include="XMPLib\SearchTagEditor.cs" />
     <EmbeddedResource Include="AddWatcherForm.resx">
       <DependentUpon>AddWatcherForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -174,14 +217,26 @@
     <EmbeddedResource Include="EditWatcherForm.resx">
       <DependentUpon>EditWatcherForm.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="EditXMPTagsForm.resx">
+      <DependentUpon>EditXMPTagsForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FileInfoPanel.resx">
       <DependentUpon>FileInfoPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="LogForm.resx">
+      <DependentUpon>LogForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="MultiXMPEdit.resx">
+      <DependentUpon>MultiXMPEdit.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="PopoutImageView.resx">
       <DependentUpon>PopoutImageView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RenameForm.resx">
+      <DependentUpon>RenameForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="SettingsForm.resx">
       <DependentUpon>SettingsForm.cs</DependentUpon>
@@ -228,6 +283,9 @@
     </Reference>
     <Reference Include="LibVLCSharp.WinForms, Version=3.4.2.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\LibVLCSharp.WinForms.3.4.2\lib\net40\LibVLCSharp.WinForms.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.1.1.0\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
@@ -389,6 +447,7 @@
     <None Include="Resources\icon.bmp" />
     <None Include="Resources\icon.ico" />
     <Content Include="Resources\nothumb.bmp" />
+    <None Include="Resources\nothumb_small.bmp" />
     <Content Include="Resources\pause.bmp" />
     <Content Include="Resources\play.bmp" />
     <None Include="Resources\SortDescending.png" />

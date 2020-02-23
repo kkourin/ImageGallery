@@ -236,7 +236,7 @@ namespace ImageGallery.Database
             if (!Directory.Exists(fileEvent.FullPath) && watcher.WhitelistedFile(fileEvent.FullPath))
             {
                 _changedCache.AddOrGetExisting(fileEvent.FullPath, fileEvent, ChangeCachePolicy());
-                ctx.UpdateFile(fileEvent.FullPath, watcher);
+                //ctx.UpdateFile(fileEvent.FullPath, watcher);
             } 
         }
 
@@ -304,6 +304,18 @@ namespace ImageGallery.Database
             syncTimer.Enabled = true;
         }
 
+        public void DisableRaisingEventsAndSync()
+        {
+            syncTimer.Stop(); // Resets timer.
+            FsWatcher.EnableRaisingEvents = false;
+        }
+
+        public void EnableRaisingEventsAndSync()
+        {
+            FsWatcher.EnableRaisingEvents = true;
+            syncTimer.Start();
+        }
+
         public void Stop()
         {
             Console.WriteLine($"Stopped {Watcher.Directory}");
@@ -351,7 +363,8 @@ namespace ImageGallery.Database
                 syncTimer.Interval = SyncIntervalMillis;
             }
         }
-        private void Sync()
+
+        public void Sync(bool updateThumbnails = true)
         {
             // Add timeout?
             syncMutex.WaitOne();
@@ -359,7 +372,7 @@ namespace ImageGallery.Database
             {
                 using (var ctx = new FilesContext())
                 {
-                    var changed = ctx.Sync(Watcher);
+                    var changed = ctx.Sync(Watcher, updateThumbnails);
                     OnSyncOccurredEvent(new SyncOccurredEventArgs { Changed = changed, WatcherId = Watcher.Id });
                     syncTimer.Reset();
                 }

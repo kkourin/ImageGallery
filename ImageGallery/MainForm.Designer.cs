@@ -30,16 +30,19 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            this.ilvThumbs = new Manina.Windows.Forms.ImageListView();
             this.GalleryRightClick = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.OpenButton = new System.Windows.Forms.ToolStripMenuItem();
             this.openFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.CopyFileButton = new System.Windows.Forms.ToolStripMenuItem();
             this.CopyImageButton = new System.Windows.Forms.ToolStripMenuItem();
+            this.CopyFileButton = new System.Windows.Forms.ToolStripMenuItem();
+            this.renameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.FileTagSeparator = new System.Windows.Forms.ToolStripSeparator();
             this.editTagsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addTagsButton = new System.Windows.Forms.ToolStripMenuItem();
+            this.editXMPTagsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.previewBox = new System.Windows.Forms.PictureBox();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.ilvThumbs = new Manina.Windows.Forms.ImageListView();
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.infoLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.MainToolStrip = new System.Windows.Forms.ToolStrip();
@@ -50,15 +53,18 @@
             this.NameOrder = new System.Windows.Forms.ToolStripMenuItem();
             this.UsedOrder = new System.Windows.Forms.ToolStripMenuItem();
             this.TimesUsedOrder = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.WatcherDropDown = new System.Windows.Forms.ToolStripDropDownButton();
             this.ShowAllButton = new System.Windows.Forms.ToolStripButton();
-            this.PopoutPreviewButton = new System.Windows.Forms.ToolStripButton();
             this.groupFoldersButton = new System.Windows.Forms.ToolStripButton();
+            this.PopoutPreviewButton = new System.Windows.Forms.ToolStripButton();
+            this.exitSeparator = new System.Windows.Forms.ToolStripSeparator();
+            this.logButton = new System.Windows.Forms.ToolStripButton();
             this.settingsButton = new System.Windows.Forms.ToolStripButton();
             this.shutdownButton = new System.Windows.Forms.ToolStripButton();
             this.mainVideoView = new ImageGallery.VideoControl();
             this.fileInfoPanel = new ImageGallery.FileInfoPanel();
-            this.NameToolTip = new System.Windows.Forms.ToolTip(this.components);
+            this.itemHoverTooltip = new System.Windows.Forms.ToolTip(this.components);
             this.MinimizedIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.TrayContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.TrayExitButton = new System.Windows.Forms.ToolStripMenuItem();
@@ -72,43 +78,21 @@
             this.MainToolStrip.SuspendLayout();
             this.TrayContextMenu.SuspendLayout();
             this.SuspendLayout();
-
-            // Icons
-            this.Icon = Properties.Resources.icon;
-            this.MinimizedIcon.Icon = Properties.Resources.icon;
-
-            // 
-            // ilvThumbs
-            // 
-            this.ilvThumbs.AllowDrop = true;
-            this.ilvThumbs.AllowItemReorder = false;
-            this.ilvThumbs.CacheLimit = "20000000";
-            this.ilvThumbs.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.ilvThumbs.Location = new System.Drawing.Point(0, 25);
-            this.ilvThumbs.Name = "ilvThumbs";
-            this.ilvThumbs.PersistentCacheDirectory = "";
-            this.ilvThumbs.PersistentCacheSize = ((long)(0));
-            this.ilvThumbs.Size = new System.Drawing.Size(783, 512);
-            this.ilvThumbs.TabIndex = 2;
-            this.ilvThumbs.UseEmbeddedThumbnails = Manina.Windows.Forms.UseEmbeddedThumbnails.Never;
-            this.ilvThumbs.UseWIC = true;
-            this.ilvThumbs.ItemDoubleClick += new Manina.Windows.Forms.ItemDoubleClickEventHandler(this.ilvThumbs_ItemDoubleClick);
-            this.ilvThumbs.SelectionChanged += new System.EventHandler(this.ilvThumbs_SelectionChanged);
-            this.ilvThumbs.Enter += new System.EventHandler(this.ilvThumbs_Enter);
-            this.ilvThumbs.MouseClick += new System.Windows.Forms.MouseEventHandler(this.ilvThumbs_MouseClick);
-            this.ilvThumbs.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ilvThumbs_MouseUp);
             // 
             // GalleryRightClick
             // 
             this.GalleryRightClick.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.OpenButton,
             this.openFolderToolStripMenuItem,
-            this.CopyFileButton,
             this.CopyImageButton,
+            this.CopyFileButton,
+            this.renameToolStripMenuItem,
+            this.FileTagSeparator,
             this.editTagsToolStripMenuItem,
-            this.addTagsButton});
+            this.addTagsButton,
+            this.editXMPTagsMenuItem});
             this.GalleryRightClick.Name = "GalleryRightClick";
-            this.GalleryRightClick.Size = new System.Drawing.Size(178, 136);
+            this.GalleryRightClick.Size = new System.Drawing.Size(193, 186);
             this.GalleryRightClick.Opening += new System.ComponentModel.CancelEventHandler(this.GalleryRightClick_Opening);
             this.GalleryRightClick.Opened += new System.EventHandler(this.GalleryRightClick_Opened);
             // 
@@ -116,7 +100,7 @@
             // 
             this.OpenButton.Name = "OpenButton";
             this.OpenButton.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-            this.OpenButton.Size = new System.Drawing.Size(177, 22);
+            this.OpenButton.Size = new System.Drawing.Size(192, 22);
             this.OpenButton.Text = "Open";
             this.OpenButton.Click += new System.EventHandler(this.OpenButton_Click);
             // 
@@ -124,37 +108,58 @@
             // 
             this.openFolderToolStripMenuItem.Name = "openFolderToolStripMenuItem";
             this.openFolderToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.L)));
-            this.openFolderToolStripMenuItem.Size = new System.Drawing.Size(177, 22);
+            this.openFolderToolStripMenuItem.Size = new System.Drawing.Size(192, 22);
             this.openFolderToolStripMenuItem.Text = "Open folder";
             this.openFolderToolStripMenuItem.Click += new System.EventHandler(this.openFolderToolStripMenuItem_Click);
-            // 
-            // CopyFileButton
-            // 
-            this.CopyFileButton.Name = "CopyFileButton";
-            this.CopyFileButton.Size = new System.Drawing.Size(177, 22);
-            this.CopyFileButton.Text = "Copy file";
-            this.CopyFileButton.Click += new System.EventHandler(this.CopyFileButton_Click);
             // 
             // CopyImageButton
             // 
             this.CopyImageButton.Name = "CopyImageButton";
-            this.CopyImageButton.Size = new System.Drawing.Size(177, 22);
+            this.CopyImageButton.Size = new System.Drawing.Size(192, 22);
             this.CopyImageButton.Text = "Copy as image";
             this.CopyImageButton.Click += new System.EventHandler(this.CopyImageButton_Click);
+            // 
+            // CopyFileButton
+            // 
+            this.CopyFileButton.Name = "CopyFileButton";
+            this.CopyFileButton.Size = new System.Drawing.Size(192, 22);
+            this.CopyFileButton.Text = "Copy file(s)";
+            this.CopyFileButton.Click += new System.EventHandler(this.CopyFileButton_Click);
+            // 
+            // renameToolStripMenuItem
+            // 
+            this.renameToolStripMenuItem.Name = "renameToolStripMenuItem";
+            this.renameToolStripMenuItem.ShortcutKeyDisplayString = "Ctrl+R";
+            this.renameToolStripMenuItem.Size = new System.Drawing.Size(192, 22);
+            this.renameToolStripMenuItem.Text = "Rename";
+            this.renameToolStripMenuItem.Click += new System.EventHandler(this.renameToolStripMenuItem_Click);
+            // 
+            // FileTagSeparator
+            // 
+            this.FileTagSeparator.Name = "FileTagSeparator";
+            this.FileTagSeparator.Size = new System.Drawing.Size(189, 6);
             // 
             // editTagsToolStripMenuItem
             // 
             this.editTagsToolStripMenuItem.Name = "editTagsToolStripMenuItem";
-            this.editTagsToolStripMenuItem.Size = new System.Drawing.Size(177, 22);
+            this.editTagsToolStripMenuItem.Size = new System.Drawing.Size(192, 22);
             this.editTagsToolStripMenuItem.Text = "Edit tags";
             this.editTagsToolStripMenuItem.Click += new System.EventHandler(this.editTagsToolStripMenuItem_Click);
             // 
             // addTagsButton
             // 
             this.addTagsButton.Name = "addTagsButton";
-            this.addTagsButton.Size = new System.Drawing.Size(177, 22);
+            this.addTagsButton.Size = new System.Drawing.Size(192, 22);
             this.addTagsButton.Text = "Add tags";
             this.addTagsButton.Click += new System.EventHandler(this.addTagsButton_Click);
+            // 
+            // editXMPTagsMenuItem
+            // 
+            this.editXMPTagsMenuItem.Name = "editXMPTagsMenuItem";
+            this.editXMPTagsMenuItem.ShortcutKeyDisplayString = "Ctrl+G";
+            this.editXMPTagsMenuItem.Size = new System.Drawing.Size(192, 22);
+            this.editXMPTagsMenuItem.Text = "Edit XMP Tags";
+            this.editXMPTagsMenuItem.Click += new System.EventHandler(this.editXMPTags_Click);
             // 
             // previewBox
             // 
@@ -163,7 +168,7 @@
             this.previewBox.Location = new System.Drawing.Point(0, 0);
             this.previewBox.MinimumSize = new System.Drawing.Size(150, 0);
             this.previewBox.Name = "previewBox";
-            this.previewBox.Size = new System.Drawing.Size(293, 485);
+            this.previewBox.Size = new System.Drawing.Size(293, 482);
             this.previewBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.previewBox.TabIndex = 2;
             this.previewBox.TabStop = false;
@@ -192,6 +197,28 @@
             this.splitContainer1.TabIndex = 0;
             this.splitContainer1.TabStop = false;
             // 
+            // ilvThumbs
+            // 
+            this.ilvThumbs.AllowDrop = true;
+            this.ilvThumbs.AllowItemReorder = false;
+            this.ilvThumbs.CacheLimit = "20000000";
+            this.ilvThumbs.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ilvThumbs.ErrorImage = global::ImageGallery.Properties.Resources.nothumb_small;
+            this.ilvThumbs.Location = new System.Drawing.Point(0, 25);
+            this.ilvThumbs.Name = "ilvThumbs";
+            this.ilvThumbs.PersistentCacheDirectory = "";
+            this.ilvThumbs.PersistentCacheSize = ((long)(0));
+            this.ilvThumbs.Size = new System.Drawing.Size(783, 512);
+            this.ilvThumbs.TabIndex = 2;
+            this.ilvThumbs.UseEmbeddedThumbnails = Manina.Windows.Forms.UseEmbeddedThumbnails.Never;
+            this.ilvThumbs.UseWIC = true;
+            this.ilvThumbs.ItemDoubleClick += new Manina.Windows.Forms.ItemDoubleClickEventHandler(this.ilvThumbs_ItemDoubleClick);
+            this.ilvThumbs.SelectionChanged += new System.EventHandler(this.ilvThumbs_SelectionChanged);
+            this.ilvThumbs.Enter += new System.EventHandler(this.ilvThumbs_Enter);
+            this.ilvThumbs.KeyDown += new System.Windows.Forms.KeyEventHandler(this.ilvThumbs_KeyDown);
+            this.ilvThumbs.MouseClick += new System.Windows.Forms.MouseEventHandler(this.ilvThumbs_MouseClick);
+            this.ilvThumbs.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ilvThumbs_MouseUp);
+            // 
             // statusStrip
             // 
             this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -200,7 +227,7 @@
             this.statusStrip.Name = "statusStrip";
             this.statusStrip.Size = new System.Drawing.Size(783, 22);
             this.statusStrip.TabIndex = 3;
-            this.statusStrip.Text = "statusStrip1";
+            this.statusStrip.Text = "Tool Status";
             // 
             // infoLabel
             // 
@@ -216,10 +243,13 @@
             this.searchTextBox,
             this.RefreshButton,
             this.sortButton,
+            this.toolStripSeparator1,
             this.WatcherDropDown,
             this.ShowAllButton,
-            this.PopoutPreviewButton,
             this.groupFoldersButton,
+            this.PopoutPreviewButton,
+            this.exitSeparator,
+            this.logButton,
             this.settingsButton,
             this.shutdownButton});
             this.MainToolStrip.Location = new System.Drawing.Point(0, 0);
@@ -298,6 +328,11 @@
             this.TimesUsedOrder.Text = "Times Used";
             this.TimesUsedOrder.Click += new System.EventHandler(this.TimesUsedOrder_Click);
             // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
+            // 
             // WatcherDropDown
             // 
             this.WatcherDropDown.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
@@ -318,6 +353,17 @@
             this.ShowAllButton.Text = "Show All";
             this.ShowAllButton.CheckedChanged += new System.EventHandler(this.ShowAllButton_CheckedChanged);
             // 
+            // groupFoldersButton
+            // 
+            this.groupFoldersButton.CheckOnClick = true;
+            this.groupFoldersButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.groupFoldersButton.Image = ((System.Drawing.Image)(resources.GetObject("groupFoldersButton.Image")));
+            this.groupFoldersButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.groupFoldersButton.Name = "groupFoldersButton";
+            this.groupFoldersButton.Size = new System.Drawing.Size(44, 22);
+            this.groupFoldersButton.Text = "Group";
+            this.groupFoldersButton.CheckedChanged += new System.EventHandler(this.groupFoldersButton_CheckedChanged);
+            // 
             // PopoutPreviewButton
             // 
             this.PopoutPreviewButton.CheckOnClick = true;
@@ -330,16 +376,20 @@
             this.PopoutPreviewButton.CheckedChanged += new System.EventHandler(this.PopoutPreviewButton_CheckedChanged);
             this.PopoutPreviewButton.Click += new System.EventHandler(this.PopoutPreviewButton_Click);
             // 
-            // groupFoldersButton
+            // exitSeparator
             // 
-            this.groupFoldersButton.CheckOnClick = true;
-            this.groupFoldersButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.groupFoldersButton.Image = ((System.Drawing.Image)(resources.GetObject("groupFoldersButton.Image")));
-            this.groupFoldersButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.groupFoldersButton.Name = "groupFoldersButton";
-            this.groupFoldersButton.Size = new System.Drawing.Size(44, 22);
-            this.groupFoldersButton.Text = "Group";
-            this.groupFoldersButton.CheckedChanged += new System.EventHandler(this.groupFoldersButton_CheckedChanged);
+            this.exitSeparator.Name = "exitSeparator";
+            this.exitSeparator.Size = new System.Drawing.Size(6, 25);
+            // 
+            // logButton
+            // 
+            this.logButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.logButton.Image = ((System.Drawing.Image)(resources.GetObject("logButton.Image")));
+            this.logButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.logButton.Name = "logButton";
+            this.logButton.Size = new System.Drawing.Size(31, 22);
+            this.logButton.Text = "Log";
+            this.logButton.Click += new System.EventHandler(this.logButton_Click);
             // 
             // settingsButton
             // 
@@ -357,8 +407,8 @@
             this.shutdownButton.Image = ((System.Drawing.Image)(resources.GetObject("shutdownButton.Image")));
             this.shutdownButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.shutdownButton.Name = "shutdownButton";
-            this.shutdownButton.Size = new System.Drawing.Size(65, 22);
-            this.shutdownButton.Text = "Shutdown";
+            this.shutdownButton.Size = new System.Drawing.Size(29, 22);
+            this.shutdownButton.Text = "Exit";
             this.shutdownButton.Click += new System.EventHandler(this.shutdownButton_Click);
             // 
             // mainVideoView
@@ -368,26 +418,28 @@
             this.mainVideoView.Location = new System.Drawing.Point(0, 0);
             this.mainVideoView.Name = "mainVideoView";
             this.mainVideoView.Queue = null;
-            this.mainVideoView.Size = new System.Drawing.Size(293, 485);
+            this.mainVideoView.Size = new System.Drawing.Size(293, 482);
             this.mainVideoView.Started = false;
             this.mainVideoView.TabIndex = 4;
             this.mainVideoView.Visible = false;
             // 
             // fileInfoPanel
             // 
+            this.fileInfoPanel.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.fileInfoPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.fileInfoPanel.Items = null;
             this.fileInfoPanel.Loading = false;
-            this.fileInfoPanel.Location = new System.Drawing.Point(0, 485);
+            this.fileInfoPanel.Location = new System.Drawing.Point(0, 482);
             this.fileInfoPanel.Name = "fileInfoPanel";
             this.fileInfoPanel.Padding = new System.Windows.Forms.Padding(3);
-            this.fileInfoPanel.Size = new System.Drawing.Size(293, 74);
+            this.fileInfoPanel.Size = new System.Drawing.Size(293, 77);
             this.fileInfoPanel.TabIndex = 3;
             this.fileInfoPanel.TabStop = false;
             // 
             // MinimizedIcon
             // 
             this.MinimizedIcon.ContextMenuStrip = this.TrayContextMenu;
+            this.MinimizedIcon.Icon = global::ImageGallery.Properties.Resources.icon;
             this.MinimizedIcon.Text = "Image Gallery";
             this.MinimizedIcon.Visible = true;
             this.MinimizedIcon.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.MinimizedIcon_MouseDoubleClick);
@@ -412,6 +464,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1084, 561);
             this.Controls.Add(this.splitContainer1);
+            this.Icon = global::ImageGallery.Properties.Resources.icon;
             this.KeyPreview = true;
             this.Name = "MainForm";
             this.Text = "Image Gallery";
@@ -436,8 +489,6 @@
         }
 
         #endregion
-
-        private Manina.Windows.Forms.ImageListView ilvThumbs;
         private System.Windows.Forms.PictureBox previewBox;
         private System.Windows.Forms.SplitContainer splitContainer1;
         private System.Windows.Forms.StatusStrip statusStrip;
@@ -450,7 +501,7 @@
         private System.Windows.Forms.ToolStripMenuItem UsedOrder;
         private System.Windows.Forms.ToolStripMenuItem CreatedOrder;
         private System.Windows.Forms.ToolStripMenuItem TimesUsedOrder;
-        private System.Windows.Forms.ToolTip NameToolTip;
+        private System.Windows.Forms.ToolTip itemHoverTooltip;
         private System.Windows.Forms.ToolStripDropDownButton WatcherDropDown;
         private System.Windows.Forms.ToolStripButton ShowAllButton;
         private System.Windows.Forms.ToolStripButton PopoutPreviewButton;
@@ -469,6 +520,13 @@
         private System.Windows.Forms.ToolStripButton settingsButton;
         private System.Windows.Forms.ToolStripButton shutdownButton;
         private System.Windows.Forms.ToolStripButton groupFoldersButton;
+        private System.Windows.Forms.ToolStripButton logButton;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripSeparator exitSeparator;
+        private System.Windows.Forms.ToolStripMenuItem editXMPTagsMenuItem;
+        private Manina.Windows.Forms.ImageListView ilvThumbs;
+        private System.Windows.Forms.ToolStripMenuItem renameToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator FileTagSeparator;
     }
 }
 

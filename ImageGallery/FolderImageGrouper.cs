@@ -74,18 +74,6 @@ namespace ImageGallery
             _sortColumn = sortColumn;
             _idToPath = idToPath;
         }
-        private static int CompareTimes(DateTime? t1, DateTime? t2)
-        {
-            if (!t1.HasValue)
-            {
-                return -1;
-            }
-            if (!t2.HasValue)
-            {
-                return 1;
-            }
-            return DateTime.Compare(t1.Value, t2.Value);
-        }
         public int Compare(ImageListViewItem x, ImageListViewItem y)
         {
             var xFile = x.VirtualItemKey as File;

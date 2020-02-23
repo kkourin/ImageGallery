@@ -189,5 +189,50 @@ namespace ImageGallery.Database
             }
             return watchers[id].LastError;
         }
+
+        public void DisableFSOperations(int id)
+        {
+            FSWatcherTaskPack pack;
+
+            if (watchers.TryGetValue(id, out pack))
+            {
+                lock (pack)
+                {
+
+                    pack.FSWatcher.DisableRaisingEventsAndSync();
+                }
+
+            }
+        }
+
+        public void ReenableFSOperations(int id)
+        {
+            FSWatcherTaskPack pack;
+
+            if (watchers.TryGetValue(id, out pack))
+            {
+                lock (pack)
+                {
+                    pack.FSWatcher.EnableRaisingEventsAndSync();
+                }
+
+            }
+        }
+
+        public void SyncById(int id, bool updateThumbnails)
+        {
+            FSWatcherTaskPack pack;
+
+            if (watchers.TryGetValue(id, out pack))
+            {
+                lock (pack)
+                {
+                    pack.FSWatcher.Sync(updateThumbnails);
+                }
+
+            }
+        }
+
+
     }
 }

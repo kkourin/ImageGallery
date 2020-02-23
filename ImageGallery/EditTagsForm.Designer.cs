@@ -33,9 +33,6 @@
             this.okButton = new System.Windows.Forms.Button();
             this.cancelButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
-
-            this.Icon = Properties.Resources.icon;
-
             // 
             // editTagsLabel
             // 
@@ -82,13 +79,16 @@
             // 
             // EditTagsForm
             // 
+            this.AcceptButton = this.okButton;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.CancelButton = this.cancelButton;
             this.ClientSize = new System.Drawing.Size(345, 277);
             this.Controls.Add(this.cancelButton);
             this.Controls.Add(this.okButton);
             this.Controls.Add(this.tagsBox);
             this.Controls.Add(this.editTagsLabel);
+            this.Icon = global::ImageGallery.Properties.Resources.icon;
             this.Name = "EditTagsForm";
             this.Text = "Edit tags";
             this.ResumeLayout(false);

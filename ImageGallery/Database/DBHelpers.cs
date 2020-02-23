@@ -7,6 +7,7 @@ using System.IO;
 
 namespace ImageGallery.Database
 {
+    using log4net;
     using Microsoft.EntityFrameworkCore.ChangeTracking;
     using Models;
     using System.Drawing;
@@ -14,6 +15,7 @@ namespace ImageGallery.Database
 
     public static class DBHelpers
     {
+
         private static readonly string[] fts_split_tokens = new string[] { "\\", "/", ".", " ", "-", "+", "-", "'", "%", "(", ")", "[", "]", "{", "}", "\"", "=", "\t", "_", "　" };
         private static string Tokenize(string name)
         {

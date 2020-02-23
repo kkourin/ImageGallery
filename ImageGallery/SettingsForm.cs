@@ -141,5 +141,10 @@ namespace ImageGallery
         {
             hotkeyTextBox.Enabled = enabledKeyBox.Checked;
         }
+
+        private void ClearCacheButton_Click(object sender, EventArgs e)
+        {
+            FileModelAdapter.RefreshIconCache();
+        }
     }
 }

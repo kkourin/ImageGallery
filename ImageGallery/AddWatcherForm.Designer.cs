@@ -118,6 +118,7 @@
             // 
             // CancelAddButton
             // 
+            this.CancelAddButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.CancelAddButton.Location = new System.Drawing.Point(206, 257);
             this.CancelAddButton.Name = "CancelAddButton";
             this.CancelAddButton.Size = new System.Drawing.Size(75, 23);
@@ -192,8 +193,10 @@
             // 
             // AddWatcherForm
             // 
+            this.AcceptButton = this.AddButton;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.CancelButton = this.CancelAddButton;
             this.ClientSize = new System.Drawing.Size(362, 294);
             this.Controls.Add(this.AudioButton);
             this.Controls.Add(this.GenerateVideoThumbnailsBox);

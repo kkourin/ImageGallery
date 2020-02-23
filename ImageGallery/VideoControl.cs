@@ -476,7 +476,10 @@ namespace ImageGallery
             if (InvokeRequired)
             {
                 var d = new setVideoViewVisibleDelegate(setVideoViewVisibleSafe);
-                Invoke(d, new object[] { visible });
+                if (!IsDisposed)
+                {
+                    Invoke(d, new object[] { visible });
+                }
             }
             else
             {

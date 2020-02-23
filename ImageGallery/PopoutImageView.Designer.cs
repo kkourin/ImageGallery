@@ -42,7 +42,7 @@
             this.poppedPreviewBox.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Bicubic;
             this.poppedPreviewBox.Location = new System.Drawing.Point(0, 0);
             this.poppedPreviewBox.Name = "poppedPreviewBox";
-            this.poppedPreviewBox.Size = new System.Drawing.Size(800, 391);
+            this.poppedPreviewBox.Size = new System.Drawing.Size(800, 375);
             this.poppedPreviewBox.TabIndex = 0;
             this.poppedPreviewBox.Resize += new System.EventHandler(this.poppedPreviewBox_Resize);
             // 
@@ -51,10 +51,10 @@
             this.fileInfoPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.fileInfoPanel.Items = null;
             this.fileInfoPanel.Loading = false;
-            this.fileInfoPanel.Location = new System.Drawing.Point(0, 391);
+            this.fileInfoPanel.Location = new System.Drawing.Point(0, 375);
             this.fileInfoPanel.Name = "fileInfoPanel";
             this.fileInfoPanel.Padding = new System.Windows.Forms.Padding(3);
-            this.fileInfoPanel.Size = new System.Drawing.Size(800, 59);
+            this.fileInfoPanel.Size = new System.Drawing.Size(800, 75);
             this.fileInfoPanel.TabIndex = 1;
             // 
             // videoView
@@ -64,7 +64,7 @@
             this.videoView.Location = new System.Drawing.Point(0, 0);
             this.videoView.Name = "videoView";
             this.videoView.Queue = null;
-            this.videoView.Size = new System.Drawing.Size(800, 391);
+            this.videoView.Size = new System.Drawing.Size(800, 375);
             this.videoView.Started = false;
             this.videoView.TabIndex = 2;
             this.videoView.Visible = false;

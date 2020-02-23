@@ -16,9 +16,11 @@ namespace ImageGallery
 {
     using Database;
     using Database.Models;
+    using ImageGallery.XMPLib;
     using LibVLCSharp.Shared;
     using NHotkey;
     using System.Configuration;
+    using static ImageGallery.Database.FilesContext;
 
     public partial class MainForm : Form
     {
@@ -37,10 +39,11 @@ namespace ImageGallery
          private const string OpenHotKeyName = "a5168172-901e-4951-871a-1ea72e8728e7_ImageGalleryOpen";
 #endif
 
+        delegate void setInfoLabelSafeDelegate(string text);
         private const int RefreshGracePeriod = 3000;
 
         private const int InitSearchResultSize = 50;
-        private int SearchResultSize = InitSearchResultSize;
+        private int SearchResultSizeLimit = InitSearchResultSize;
         CancellationTokenSource previewCts = new CancellationTokenSource();
         CancellationTokenSource searchCts = new CancellationTokenSource();
         private ToolStripMenuItem ManageWatchersButton;
@@ -50,6 +53,7 @@ namespace ImageGallery
 
         private LibVLC _libVLC;
         private MediaPlayer _mediaPlayer;
+        private SearchTagEditor _searchTagEditor;
 
         private WatcherKeyManager _watcherKeyManager;
 
@@ -57,7 +61,7 @@ namespace ImageGallery
         {
             Adaptor = new FileModelAdapter();
         }
-        public MainForm(Database.WatcherMonitor monitor, LibVLC libVLC)
+        public MainForm(Database.WatcherMonitor monitor, LibVLC libVLC, SearchTagEditor searchTagEditor)
         {
             // Init Form
             InitializeComponent();
@@ -66,6 +70,8 @@ namespace ImageGallery
             _mediaPlayer = new MediaPlayer(libVLC);
             _mediaPlayer.EnableHardwareDecoding = true;
             mainVideoView.LibVLC = _libVLC;
+
+            _searchTagEditor = searchTagEditor;
 
             WatcherDropDown.DropDown.Closing += WatcherDropDown_Closing;
             Helpers.DisableFormTransition(Handle);
@@ -207,21 +213,70 @@ namespace ImageGallery
             RefreshView();
         }
 
+        private HashSet<(string fullName, int watcherId)> GetSelectedFiles()
+        {
+            var selectedFiles = new HashSet<(string fullName, int watcherId)>();
+            foreach (var item in ilvThumbs.Items)
+            {
+                if (item.Selected)
+                {
+                    var file = item.VirtualItemKey as File;
+                    selectedFiles.Add((file.FullName, file.WatcherId));
+                }
+            }
+            return selectedFiles;
+        }
+
+        private void SelectFiles(HashSet<(string fullName, int watcherId)> files)
+        {
+            foreach (var item in ilvThumbs.Items)
+            {
+                var file = item.VirtualItemKey as File;
+                if (files.Contains((file.FullName, file.WatcherId)))
+                {
+                    item.Selected = true;
+                }
+            }
+        }
+
+        private int GetFirstSelectedIndex()
+        {
+            for (int i = 0; i < ilvThumbs.Items.Count; i++) { 
+                if (ilvThumbs.Items[i].Selected)
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        private void RefreshViewAndReselect()
+        {
+            var prevSelectedFiles = GetSelectedFiles();
+            RefreshView();
+            SelectFiles(prevSelectedFiles);
+            int firstSelectedIndex = GetFirstSelectedIndex();
+            if (firstSelectedIndex != -1)
+            {
+                ilvThumbs.EnsureVisible(firstSelectedIndex);
+            }
+        }
         private void RefreshView()
         {
-            Console.WriteLine(GetActiveWatcherIds().Count);
             ilvThumbs.Items.Clear();
             if (!searchTextBox.Text.Any())
             {
                 if (ShowAllButton.Checked)
                 {
                     ShowAllDefault();
-                    return;
+                } else {
+                    ShowDefault();
                 }
-                ShowDefault();
-                return;
+                setInfoLabelSafe("Ready.");
+            } else
+            {
+                DoSearch();
             }
-            DoSearch();
 
         }
 
@@ -296,10 +351,26 @@ namespace ImageGallery
                 using (var ctx = new FilesContext())
                 {
                     //result.AddRange(ctx.Search(searchString, watcherIds, GetSortColumn()).Take(SearchResultSize));
-                    searchResult = ctx.Search(searchString, watcherIds, GetSortColumn())
-                        .Take(SearchResultSize)
-                        .Select(file => MakeListViewItem(file, file.Watcher, "Search Result"))
-                        .ToList();
+                    try
+                    {
+                        searchResult = ctx.Search(searchString, watcherIds, GetSortColumn())
+                            .Take(SearchResultSizeLimit + 1)
+                            .Select(file => MakeListViewItem(file, file.Watcher, "Search Result"))
+                            .ToList();
+                    } catch (Microsoft.Data.Sqlite.SqliteException)
+                    {
+                        setInfoLabelSafe("Error: Invalid query syntax (try a different search).");
+                        searchResult = new List<ImageListViewItem>();
+                    }
+
+                }
+                if (searchResult.Count > SearchResultSizeLimit)
+                {
+                    searchResult.RemoveAt(searchResult.Count - 1);
+                    setInfoLabelSafe($"{searchResult.Count} results displayed. Search limit exceeded. Press Show All to show all results.");
+                } else
+                {
+                    setInfoLabelSafe($"{searchResult.Count} results displayed. ");
                 }
                 if (token.IsCancellationRequested)
                 {
@@ -310,7 +381,7 @@ namespace ImageGallery
                     ilvThumbs.Items.Clear();
                     if (groupFoldersButton.Checked)
                     {
-                        AddFolderGroupedItems(searchResult);
+                        AddFolderGroupedItemsAndSort(searchResult);
                     } else
                     {
                         AddTypeGroupedItems(searchResult);
@@ -320,7 +391,7 @@ namespace ImageGallery
             }, token);
         }
 
-        private void AddFolderGroupedItems(List<ImageListViewItem> items)
+        private void AddFolderGroupedItemsAndSort(List<ImageListViewItem> items)
         {
             var grouper = new FolderImageGrouper(items);
             var sorter = new RelativePathComparer(GetSortColumn(), grouper.IdToPath);
@@ -331,8 +402,16 @@ namespace ImageGallery
             ilvThumbs.GroupOrder = Manina.Windows.Forms.SortOrder.Ascending;
 
             ilvThumbs.SortColumn = 2;
-            ilvThumbs.SortOrder = Manina.Windows.Forms.SortOrder.Descending;
+            ilvThumbs.SortOrder = Manina.Windows.Forms.SortOrder.Ascending;
             ilvThumbs.Items.AddRange(items.ToArray(), Adaptor);
+            ilvThumbs.Sort();
+        }
+
+        // Unforunately, ImageListView does not have a stable sort, so sometimes
+        // we need to just not sort to preserve the orignal order.
+        private void AddTypeGroupedItemsAndSort(List<ImageListViewItem> items)
+        {
+            AddTypeGroupedItems(items);
             ilvThumbs.Sort();
         }
 
@@ -341,9 +420,8 @@ namespace ImageGallery
             ilvThumbs.GroupColumn = 1;
             ilvThumbs.GroupOrder = Manina.Windows.Forms.SortOrder.Ascending;
             ilvThumbs.SortColumn = 1;
-            ilvThumbs.SortOrder = Manina.Windows.Forms.SortOrder.Descending;
+            ilvThumbs.SortOrder = Manina.Windows.Forms.SortOrder.Ascending;
             ilvThumbs.Items.AddRange(items.ToArray(), Adaptor);
-            ilvThumbs.Sort();
         }
 
         private static ImageListViewItem MakeListViewItem(File model, Watcher watcher, string heading)
@@ -382,7 +460,7 @@ namespace ImageGallery
             ilvThumbs.Items.Clear();
             if (groupFoldersButton.Checked)
             {
-                AddFolderGroupedItems(items);
+                AddFolderGroupedItemsAndSort(items);
             }
             else
             {
@@ -399,7 +477,7 @@ namespace ImageGallery
                 // Recently Created
                 if (settings.ShowRecentlyCreated)
                 {
-                    var modifiedModels = (from file in ctx.Files
+                    var modifiedModels = (from file in ctx.Files.AsNoTracking()
                                           where activeWatchers.Contains(file.WatcherId)
                                           orderby file.LastChangeTime descending
                                           select MakeListViewItem(file, file.Watcher, "Recently Created"));
@@ -407,7 +485,7 @@ namespace ImageGallery
                 }
                 if (settings.ShowRecentlyUsed)
                 {
-                    var LastUsemodels = from file in ctx.Files
+                    var LastUsemodels = from file in ctx.Files.AsNoTracking()
                                         where activeWatchers.Contains(file.WatcherId)
                                         orderby file.LastUseTime descending
                                         select MakeListViewItem(file, file.Watcher, "Recently Used");
@@ -423,7 +501,7 @@ namespace ImageGallery
                 }
 
             }
-            AddTypeGroupedItems(items);
+            AddTypeGroupedItemsAndSort(items);
         }
 
         public class ResultTypeComparer : IComparer<ImageListViewItem>
@@ -447,19 +525,18 @@ namespace ImageGallery
                 if (xType != yType)
                 {
                     return ImageGrouper.TypeDict[xType].CompareTo(ImageGrouper.TypeDict[yType]);
-                    //return 0;
                 }
                 File xFile = (File)x.VirtualItemKey;
                 File yFile = (File)y.VirtualItemKey;
 
                 if (xType == "Recently Created")
                 {
-                    return CompareTimes(xFile.FileModifiedTime, yFile.FileModifiedTime);
+                    return ComparerFromSort(SortColumn.DateChanged).Compare(xFile, yFile);
                 }
                 else if (xType == "Recently Used")
                 {
 
-                    return CompareTimes(xFile.LastUseTime, yFile.LastUseTime);
+                    return ComparerFromSort(SortColumn.DateAccessed).Compare(xFile, yFile);
                 }
                 else if (xType == "Frequently Used")
                 {
@@ -482,8 +559,6 @@ namespace ImageGallery
         {
             PopoutPreviewButton.Checked = false;
             splitContainer1.Panel2Collapsed = false;
-            //RefreshPreviewImage();
-            //MaybeShowVideoPlayers();
             MaybeSetMediaWindow();
             RefreshPreview();
         }
@@ -588,7 +663,7 @@ namespace ImageGallery
             }
             else
             {
-                previewImage = FileModelAdapter.getThumbnailFromFile(file);
+                previewImage = (Image) FileModelAdapter.getThumbnailFromFile(file).Clone();
             }
             
 
@@ -760,7 +835,7 @@ namespace ImageGallery
                 return;
             }
             StringCollection sc = new StringCollection();
-            sc.AddRange(files.Select(t => t.FullName).ToArray());
+            sc.AddRange(files.Select(t => t.FullName).ToHashSet().ToArray());
             infoLabel.Text = String.Format(
                 $"Copied {files.Count} files to clipboard.");
             Clipboard.SetFileDropList(sc);
@@ -883,6 +958,20 @@ namespace ImageGallery
                 e.SuppressKeyPress = true;
                 return;
             }
+            if (e.KeyCode == Keys.R && e.Modifiers == Keys.Control)
+            {
+                renameToolStripMenuItem.PerformClick();
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                return;
+            }
+            if (e.KeyCode == Keys.G && e.Modifiers == Keys.Control)
+            {
+                editXMPTagsMenuItem.PerformClick();
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                return;
+            }
             if (e.KeyCode == Keys.Escape)
             {
                 this.WindowState = FormWindowState.Minimized;
@@ -929,11 +1018,11 @@ namespace ImageGallery
         {
             if (ShowAllButton.Checked)
             {
-                SearchResultSize = Int32.MaxValue;
+                SearchResultSizeLimit = Int32.MaxValue;
             }
             else
             {
-                SearchResultSize = InitSearchResultSize;
+                SearchResultSizeLimit = InitSearchResultSize;
             }
 
             RefreshView();
@@ -1007,15 +1096,11 @@ namespace ImageGallery
         {
             try
             {
-#if DEBUG
                 HotkeyManager.Current.AddOrReplace(OpenHotKeyName, openShortcut, OpenGalleryHotkey_Press);
-#else
-                HotkeyManager.Current.AddOrReplace(OpenHotKeyName, openShortcut, OpenGalleryHotkey_Press);
-#endif
             }
             catch (HotkeyAlreadyRegisteredException)
             {
-                MessageBox.Show("Failed to set the open hotkey. Proceeding without. This may be fixed by changing the key in the settings.", "Failed to add hotkey", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Failed to set the global open hotkey. It likely conflicts with one of your watcher hotkeys.  This may be fixed by changing the open key in the settings. Proceeding without the key shortcut.", "ImageGallery: Failed to add hotkey", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
         }
@@ -1024,15 +1109,10 @@ namespace ImageGallery
         {
             try
             {
-#if DEBUG
                 HotkeyManager.Current.Remove(OpenHotKeyName);
-#else
-                HotkeyManager.Current.Remove(OpenHotKeyName);
-#endif
             }
             catch (HotkeyAlreadyRegisteredException)
             {
-                MessageBox.Show("Failed to set the open hotkey. Proceeding without. This may be fixed by changing the key in the settings.", "Failed to add hotkey", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -1199,7 +1279,7 @@ namespace ImageGallery
             {
                 this.Invoke((MethodInvoker)delegate
                 {
-                    RefreshView();
+                    RefreshViewAndReselect();
                 });
                 RefreshTimer.Enabled = true;
             } else
@@ -1215,7 +1295,7 @@ namespace ImageGallery
             {
                 this.Invoke((MethodInvoker)delegate
                 {
-                    RefreshView();
+                    RefreshViewAndReselect();
                 });
                 RefreshTimer.Reset();
             }
@@ -1303,6 +1383,11 @@ namespace ImageGallery
 
         }
 
+        private bool CheckSelectedForXMP(IEnumerable<ImageListViewItem> items)
+        {
+            return items.Select(item => item.VirtualItemKey as File).All(file => SearchTagEditor.usableExtension(file.FullName));
+        }
+
         private void ilvThumbs_MouseUp(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Right)
@@ -1316,20 +1401,22 @@ namespace ImageGallery
                 {
                     CopyImageButton.Enabled = false;
                     editTagsToolStripMenuItem.Enabled = false;
+                    openFolderToolStripMenuItem.Enabled = false;
+                    renameToolStripMenuItem.Enabled = false;
+                    editXMPTagsMenuItem.Enabled = CheckSelectedForXMP(ilvThumbs.SelectedItems);
                     GalleryRightClick.Show(this, new Point(e.X + ilvThumbs.Left, e.Y + ilvThumbs.Top));
                     return;
                 }
                 editTagsToolStripMenuItem.Enabled = true;
+                openFolderToolStripMenuItem.Enabled = true;
 
                 File file = (File)ilvThumbs.SelectedItems[0].VirtualItemKey;
-                if (!Helpers.IsImageFile(file.FullName))
-                {
-                    CopyImageButton.Enabled = false;
-                }
-                else
-                {
-                    CopyImageButton.Enabled = true;
-                }
+
+
+                CopyImageButton.Enabled = Helpers.IsImageFile(file.FullName);
+                editXMPTagsMenuItem.Enabled = CheckSelectedForXMP(ilvThumbs.SelectedItems);
+
+
                 GalleryRightClick.Show(this, new Point(e.X + ilvThumbs.Left, e.Y + ilvThumbs.Top));
 
             }
@@ -1375,7 +1462,6 @@ namespace ImageGallery
         private void settingsButton_Click(object sender, EventArgs e)
         {
             var settingsForm = new SettingsForm(this);
-            MaybeSetGlobalKey(Properties.Settings.Default.OpenShortcut);
 
             settingsForm.ShowDialog();
             if (searchTextBox.Text.Length == 0)
@@ -1404,6 +1490,56 @@ namespace ImageGallery
         private void groupFoldersButton_CheckedChanged(object sender, EventArgs e)
         {
             RefreshView();
+        }
+
+
+        public void setInfoLabelSafe(string text)
+        {
+            if (InvokeRequired)
+            {
+                var d = new setInfoLabelSafeDelegate(setInfoLabelSafe);
+                Invoke(d, new object[] { text });
+            }
+            else
+            {
+                infoLabel.Text = text;
+            }
+        }
+
+        private void logButton_Click(object sender, EventArgs e)
+        {
+            LogForm.GetInstance().BringToFront();
+        }
+
+        private void ilvThumbs_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Modifiers == Keys.Control && e.KeyCode == Keys.A)
+            {
+                ilvThumbs.SelectAll();
+            }
+        }
+
+        private void editXMPTags_Click(object sender, EventArgs e)
+        {
+            var numSelected = ilvThumbs.SelectedItems.Count;
+            var selected = ilvThumbs.SelectedItems.Select(f => f).ToList();
+            if (numSelected == 0 || !CheckSelectedForXMP(selected))
+            {
+                return;
+            }
+            var editTagsForm = new MultiXMPEditForm(selected.Select(item => item.VirtualItemKey as File).ToList(), _searchTagEditor, Monitor);
+            editTagsForm.ShowDialog();
+        }
+
+        private void renameToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var numSelected = ilvThumbs.SelectedItems.Count;
+            if (numSelected != 1)
+            {
+                return;
+            }
+            var form = new RenameForm(ilvThumbs.SelectedItems[0].VirtualItemKey as File);
+            form.ShowDialog();
         }
     }
 

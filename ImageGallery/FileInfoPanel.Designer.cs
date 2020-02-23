@@ -35,12 +35,14 @@
             this.LoadingLabel = new System.Windows.Forms.Label();
             this.TagsHeadingLabel = new System.Windows.Forms.Label();
             this.TagsLabel = new System.Windows.Forms.Label();
+            this.XMPTagsLabel = new System.Windows.Forms.Label();
+            this.XMPTagsHeadingLabel = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // NameHeadingLabel
             // 
             this.NameHeadingLabel.AutoSize = true;
-            this.NameHeadingLabel.Location = new System.Drawing.Point(3, 0);
+            this.NameHeadingLabel.Location = new System.Drawing.Point(-3, 0);
             this.NameHeadingLabel.Name = "NameHeadingLabel";
             this.NameHeadingLabel.Size = new System.Drawing.Size(38, 13);
             this.NameHeadingLabel.TabIndex = 0;
@@ -49,7 +51,7 @@
             // PathHeadingLabel
             // 
             this.PathHeadingLabel.AutoSize = true;
-            this.PathHeadingLabel.Location = new System.Drawing.Point(9, 13);
+            this.PathHeadingLabel.Location = new System.Drawing.Point(3, 13);
             this.PathHeadingLabel.Name = "PathHeadingLabel";
             this.PathHeadingLabel.Size = new System.Drawing.Size(32, 13);
             this.PathHeadingLabel.TabIndex = 1;
@@ -60,9 +62,9 @@
             this.NameLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.NameLabel.AutoEllipsis = true;
-            this.NameLabel.Location = new System.Drawing.Point(47, 0);
+            this.NameLabel.Location = new System.Drawing.Point(41, 0);
             this.NameLabel.Name = "NameLabel";
-            this.NameLabel.Size = new System.Drawing.Size(278, 13);
+            this.NameLabel.Size = new System.Drawing.Size(286, 13);
             this.NameLabel.TabIndex = 2;
             this.NameLabel.Text = "No file selected.";
             this.NameLabel.Click += new System.EventHandler(this.NameLabel_Click);
@@ -72,16 +74,16 @@
             this.PathLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.PathLabel.AutoEllipsis = true;
-            this.PathLabel.Location = new System.Drawing.Point(47, 13);
+            this.PathLabel.Location = new System.Drawing.Point(41, 13);
             this.PathLabel.Name = "PathLabel";
-            this.PathLabel.Size = new System.Drawing.Size(278, 26);
+            this.PathLabel.Size = new System.Drawing.Size(286, 26);
             this.PathLabel.TabIndex = 4;
             // 
             // LoadingLabel
             // 
             this.LoadingLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.LoadingLabel.AutoSize = true;
-            this.LoadingLabel.Location = new System.Drawing.Point(-3, 67);
+            this.LoadingLabel.Location = new System.Drawing.Point(-3, 70);
             this.LoadingLabel.Name = "LoadingLabel";
             this.LoadingLabel.Size = new System.Drawing.Size(85, 13);
             this.LoadingLabel.TabIndex = 5;
@@ -91,7 +93,7 @@
             // TagsHeadingLabel
             // 
             this.TagsHeadingLabel.AutoSize = true;
-            this.TagsHeadingLabel.Location = new System.Drawing.Point(9, 38);
+            this.TagsHeadingLabel.Location = new System.Drawing.Point(3, 41);
             this.TagsHeadingLabel.Name = "TagsHeadingLabel";
             this.TagsHeadingLabel.Size = new System.Drawing.Size(34, 13);
             this.TagsHeadingLabel.TabIndex = 7;
@@ -102,16 +104,38 @@
             this.TagsLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.TagsLabel.AutoEllipsis = true;
-            this.TagsLabel.Location = new System.Drawing.Point(47, 38);
+            this.TagsLabel.Location = new System.Drawing.Point(41, 41);
             this.TagsLabel.Name = "TagsLabel";
-            this.TagsLabel.Size = new System.Drawing.Size(278, 13);
+            this.TagsLabel.Size = new System.Drawing.Size(286, 13);
             this.TagsLabel.TabIndex = 8;
             this.TagsLabel.Text = "No tags.";
+            // 
+            // XMPTagsLabel
+            // 
+            this.XMPTagsLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.XMPTagsLabel.AutoEllipsis = true;
+            this.XMPTagsLabel.Location = new System.Drawing.Point(41, 56);
+            this.XMPTagsLabel.Name = "XMPTagsLabel";
+            this.XMPTagsLabel.Size = new System.Drawing.Size(286, 13);
+            this.XMPTagsLabel.TabIndex = 10;
+            this.XMPTagsLabel.Text = "No XMP tags.";
+            // 
+            // XMPTagsHeadingLabel
+            // 
+            this.XMPTagsHeadingLabel.AutoSize = true;
+            this.XMPTagsHeadingLabel.Location = new System.Drawing.Point(4, 56);
+            this.XMPTagsHeadingLabel.Name = "XMPTagsHeadingLabel";
+            this.XMPTagsHeadingLabel.Size = new System.Drawing.Size(33, 13);
+            this.XMPTagsHeadingLabel.TabIndex = 9;
+            this.XMPTagsHeadingLabel.Text = "XMP:";
             // 
             // FileInfoPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.XMPTagsLabel);
+            this.Controls.Add(this.XMPTagsHeadingLabel);
             this.Controls.Add(this.LoadingLabel);
             this.Controls.Add(this.TagsLabel);
             this.Controls.Add(this.TagsHeadingLabel);
@@ -120,7 +144,7 @@
             this.Controls.Add(this.PathHeadingLabel);
             this.Controls.Add(this.NameHeadingLabel);
             this.Name = "FileInfoPanel";
-            this.Size = new System.Drawing.Size(338, 80);
+            this.Size = new System.Drawing.Size(338, 83);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -135,5 +159,7 @@
         private System.Windows.Forms.Label LoadingLabel;
         private System.Windows.Forms.Label TagsHeadingLabel;
         private System.Windows.Forms.Label TagsLabel;
+        private System.Windows.Forms.Label XMPTagsLabel;
+        private System.Windows.Forms.Label XMPTagsHeadingLabel;
     }
 }

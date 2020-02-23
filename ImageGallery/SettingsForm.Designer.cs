@@ -35,25 +35,25 @@
             this.recentlyUsedUpDown = new System.Windows.Forms.NumericUpDown();
             this.frequentlyClickedUpDown = new System.Windows.Forms.NumericUpDown();
             this.OkButton = new System.Windows.Forms.Button();
-            this.CancelButton = new System.Windows.Forms.Button();
+            this.closeButton = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.homeGroup = new System.Windows.Forms.GroupBox();
             this.keyShortcutBox = new System.Windows.Forms.GroupBox();
-            this.keyboardLabel = new System.Windows.Forms.Label();
-            this.hotkeyTextBox = new System.Windows.Forms.TextBox();
-            this.hintLabel = new System.Windows.Forms.Label();
             this.enabledKeyBox = new System.Windows.Forms.CheckBox();
+            this.hintLabel = new System.Windows.Forms.Label();
+            this.hotkeyTextBox = new System.Windows.Forms.TextBox();
+            this.keyboardLabel = new System.Windows.Forms.Label();
+            this.IconGroup = new System.Windows.Forms.GroupBox();
+            this.ClearCacheButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.recentlyCreatedUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.recentlyUsedUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.frequentlyClickedUpDown)).BeginInit();
             this.homeGroup.SuspendLayout();
             this.keyShortcutBox.SuspendLayout();
+            this.IconGroup.SuspendLayout();
             this.SuspendLayout();
-
-            this.Icon = Properties.Resources.icon;
-
             // 
             // recentlyCreatedBox
             // 
@@ -126,7 +126,7 @@
             // 
             // OkButton
             // 
-            this.OkButton.Location = new System.Drawing.Point(75, 203);
+            this.OkButton.Location = new System.Drawing.Point(70, 266);
             this.OkButton.Name = "OkButton";
             this.OkButton.Size = new System.Drawing.Size(75, 23);
             this.OkButton.TabIndex = 6;
@@ -134,15 +134,16 @@
             this.OkButton.UseVisualStyleBackColor = true;
             this.OkButton.Click += new System.EventHandler(this.OkButton_Click);
             // 
-            // CancelButton
+            // closeButton
             // 
-            this.CancelButton.Location = new System.Drawing.Point(218, 203);
-            this.CancelButton.Name = "CancelButton";
-            this.CancelButton.Size = new System.Drawing.Size(75, 23);
-            this.CancelButton.TabIndex = 7;
-            this.CancelButton.Text = "Cancel";
-            this.CancelButton.UseVisualStyleBackColor = true;
-            this.CancelButton.Click += new System.EventHandler(this.CancelButton_Click);
+            this.closeButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            this.closeButton.Location = new System.Drawing.Point(218, 266);
+            this.closeButton.Name = "closeButton";
+            this.closeButton.Size = new System.Drawing.Size(75, 23);
+            this.closeButton.TabIndex = 7;
+            this.closeButton.Text = "Cancel";
+            this.closeButton.UseVisualStyleBackColor = true;
+            this.closeButton.Click += new System.EventHandler(this.CancelButton_Click);
             // 
             // label1
             // 
@@ -205,32 +206,6 @@
             this.keyShortcutBox.TabStop = false;
             this.keyShortcutBox.Text = "Key shortcut";
             // 
-            // keyboardLabel
-            // 
-            this.keyboardLabel.AutoSize = true;
-            this.keyboardLabel.Location = new System.Drawing.Point(13, 20);
-            this.keyboardLabel.Name = "keyboardLabel";
-            this.keyboardLabel.Size = new System.Drawing.Size(110, 13);
-            this.keyboardLabel.TabIndex = 0;
-            this.keyboardLabel.Text = "Open gallery shortcut:";
-            // 
-            // hotkeyTextBox
-            // 
-            this.hotkeyTextBox.Location = new System.Drawing.Point(129, 17);
-            this.hotkeyTextBox.Name = "hotkeyTextBox";
-            this.hotkeyTextBox.Size = new System.Drawing.Size(200, 20);
-            this.hotkeyTextBox.TabIndex = 1;
-            this.hotkeyTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.hotkeyTextBox_KeyDown);
-            // 
-            // hintLabel
-            // 
-            this.hintLabel.AutoSize = true;
-            this.hintLabel.Location = new System.Drawing.Point(126, 46);
-            this.hintLabel.Name = "hintLabel";
-            this.hintLabel.Size = new System.Drawing.Size(174, 13);
-            this.hintLabel.TabIndex = 2;
-            this.hintLabel.Text = "Type the new shortcut into the box.";
-            // 
             // enabledKeyBox
             // 
             this.enabledKeyBox.AutoSize = true;
@@ -242,16 +217,66 @@
             this.enabledKeyBox.UseVisualStyleBackColor = true;
             this.enabledKeyBox.CheckedChanged += new System.EventHandler(this.enabledKeyBox_CheckedChanged);
             // 
+            // hintLabel
+            // 
+            this.hintLabel.AutoSize = true;
+            this.hintLabel.Location = new System.Drawing.Point(126, 46);
+            this.hintLabel.Name = "hintLabel";
+            this.hintLabel.Size = new System.Drawing.Size(174, 13);
+            this.hintLabel.TabIndex = 2;
+            this.hintLabel.Text = "Type the new shortcut into the box.";
+            // 
+            // hotkeyTextBox
+            // 
+            this.hotkeyTextBox.Location = new System.Drawing.Point(129, 17);
+            this.hotkeyTextBox.Name = "hotkeyTextBox";
+            this.hotkeyTextBox.Size = new System.Drawing.Size(200, 20);
+            this.hotkeyTextBox.TabIndex = 1;
+            this.hotkeyTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.hotkeyTextBox_KeyDown);
+            // 
+            // keyboardLabel
+            // 
+            this.keyboardLabel.AutoSize = true;
+            this.keyboardLabel.Location = new System.Drawing.Point(13, 20);
+            this.keyboardLabel.Name = "keyboardLabel";
+            this.keyboardLabel.Size = new System.Drawing.Size(110, 13);
+            this.keyboardLabel.TabIndex = 0;
+            this.keyboardLabel.Text = "Open gallery shortcut:";
+            // 
+            // IconGroup
+            // 
+            this.IconGroup.Controls.Add(this.ClearCacheButton);
+            this.IconGroup.Location = new System.Drawing.Point(12, 203);
+            this.IconGroup.Name = "IconGroup";
+            this.IconGroup.Size = new System.Drawing.Size(338, 57);
+            this.IconGroup.TabIndex = 13;
+            this.IconGroup.TabStop = false;
+            this.IconGroup.Text = "Icons";
+            // 
+            // ClearCacheButton
+            // 
+            this.ClearCacheButton.Location = new System.Drawing.Point(16, 19);
+            this.ClearCacheButton.Name = "ClearCacheButton";
+            this.ClearCacheButton.Size = new System.Drawing.Size(75, 23);
+            this.ClearCacheButton.TabIndex = 14;
+            this.ClearCacheButton.Text = "Clear cache";
+            this.ClearCacheButton.UseVisualStyleBackColor = true;
+            this.ClearCacheButton.Click += new System.EventHandler(this.ClearCacheButton_Click);
+            // 
             // SettingsForm
             // 
+            this.AcceptButton = this.OkButton;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(362, 240);
+            this.CancelButton = this.closeButton;
+            this.ClientSize = new System.Drawing.Size(362, 304);
+            this.Controls.Add(this.IconGroup);
             this.Controls.Add(this.keyShortcutBox);
             this.Controls.Add(this.homeGroup);
             this.Controls.Add(this.OkButton);
-            this.Controls.Add(this.CancelButton);
+            this.Controls.Add(this.closeButton);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.Icon = global::ImageGallery.Properties.Resources.icon;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "SettingsForm";
@@ -265,6 +290,7 @@
             this.homeGroup.PerformLayout();
             this.keyShortcutBox.ResumeLayout(false);
             this.keyShortcutBox.PerformLayout();
+            this.IconGroup.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -278,7 +304,7 @@
         private System.Windows.Forms.NumericUpDown recentlyUsedUpDown;
         private System.Windows.Forms.NumericUpDown frequentlyClickedUpDown;
         private System.Windows.Forms.Button OkButton;
-        private System.Windows.Forms.Button CancelButton;
+        private System.Windows.Forms.Button closeButton;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
@@ -288,5 +314,7 @@
         private System.Windows.Forms.Label keyboardLabel;
         private System.Windows.Forms.Label hintLabel;
         private System.Windows.Forms.CheckBox enabledKeyBox;
+        private System.Windows.Forms.GroupBox IconGroup;
+        private System.Windows.Forms.Button ClearCacheButton;
     }
 }
